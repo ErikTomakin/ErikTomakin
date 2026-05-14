@@ -584,6 +584,10 @@ function runSetupTab() {
   setup.setColumnWidth(3, 150);
   setup.setColumnWidth(4, 150);
 
+  // Hide all columns beyond D
+  var maxCols = setup.getMaxColumns();
+  if (maxCols > 4) setup.hideColumns(5, maxCols - 4);
+
   refreshDropdowns();
   SpreadsheetApp.getUi().alert("Setup tab ready! Run Step 4 next.");
 }
@@ -880,6 +884,10 @@ function runSetupPrompts() {
   prompts.setColumnWidth(1, 500);
   prompts.setColumnWidth(2, 500);
 
+  // Lock the tab — read only
+  var promptProt = prompts.protect().setDescription("AI Prompts - Read Only");
+  promptProt.removeEditors(promptProt.getEditors());
+
   SpreadsheetApp.getUi().alert("AI Prompts tab ready! Run Step 6 next.");
 }
 
@@ -999,6 +1007,10 @@ function runSetupInstructions() {
 
   inst.setColumnWidth(1, 700);
   inst.setColumnWidth(2, 700);
+
+  // Lock the tab — read only
+  var instProt = inst.protect().setDescription("Instructions - Read Only");
+  instProt.removeEditors(instProt.getEditors());
 
   SpreadsheetApp.getUi().alert("Setup complete! Your expense tracker is ready.");
 }
