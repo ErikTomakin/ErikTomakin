@@ -397,6 +397,9 @@ function runSetupTransactions() {
   tx.getRange(2, 1, 999, 1).setNumberFormat("MM/dd/yyyy");
   tx.getRange(2, 4, 999, 1).setNumberFormat("$#,##0.00");
 
+  // Wrap text in Notes column (G)
+  tx.getRange(2, 7, 999, 1).setWrap(true);
+
   tx.setFrozenRows(1);
   SpreadsheetApp.getUi().alert("Transactions tab ready! Run Step 3 next.");
 }
