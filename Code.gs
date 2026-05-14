@@ -51,10 +51,28 @@ function onEdit(e) {
   var row   = e.range.getRow();
   var col   = e.range.getColumn();
 
-  // Transactions tab: column H checkbox toggles row protection on/off
+  // Transactions tab: block edits to cols A-G unless Edit? checkbox (col H) is checked
+  if (sheet.getName() === "Transactions" && col >= 1 && col <= 7 && row > 1) {
+    var editCheckbox = sheet.getRange(row, 8).getValue();
+    if (editCheckbox !== true) {
+      // Revert the change
+      if (e.oldValue !== undefined) {
+        e.range.setValue(e.oldValue);
+      } else {
+        e.range.clearContent();
+      }
+      SpreadsheetApp.getUi().alert("Check the 'Edit?' box in column H first to edit this row.");
+      return;
+    }
+  }
+
+  // Transactions tab: unchecking Edit? re-locks the row
   if (sheet.getName() === "Transactions" && col === 8 && row > 1) {
-    if (e.value === true) {
-      // Checked — remove protection so user can edit or delete this row
+    if (e.value !== true) {
+      var prot = sheet.getRange(row, 1, 1, 7).protect().setDescription("tx_row_" + row);
+      prot.removeEditors(prot.getEditors());
+    } else {
+      // Checked — remove any existing protection on this row
       var protections = sheet.getProtections(SpreadsheetApp.ProtectionType.RANGE);
       for (var i = 0; i < protections.length; i++) {
         if (protections[i].getDescription() === "tx_row_" + row) {
@@ -62,10 +80,6 @@ function onEdit(e) {
           break;
         }
       }
-    } else {
-      // Unchecked — re-lock this row
-      var protection = sheet.getRange(row, 1, 1, 7).protect().setDescription("tx_row_" + row);
-      protection.removeEditors(protection.getEditors());
     }
   }
 }
