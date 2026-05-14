@@ -640,6 +640,10 @@ function runRebuildDashboard() {
   dash.setColumnWidth(3, 140);
   dash.setColumnWidth(4, 140);
 
+  // Hide all columns beyond D so users can't wander off the edge
+  var maxCols = dash.getMaxColumns();
+  if (maxCols > 4) dash.hideColumns(5, maxCols - 4);
+
   dash.setFrozenRows(1);
 
   refreshDropdowns();
