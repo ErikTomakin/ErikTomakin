@@ -47,7 +47,27 @@ function onOpen() {
 }
 
 function onEdit(e) {
-  // Drawing button calls addTransaction() directly — no checkbox needed
+  var sheet = e.range.getSheet();
+  var row   = e.range.getRow();
+  var col   = e.range.getColumn();
+
+  // Transactions tab: column H checkbox toggles row protection on/off
+  if (sheet.getName() === "Transactions" && col === 8 && row > 1) {
+    if (e.value === true) {
+      // Checked — remove protection so user can edit or delete this row
+      var protections = sheet.getProtections(SpreadsheetApp.ProtectionType.RANGE);
+      for (var i = 0; i < protections.length; i++) {
+        if (protections[i].getDescription() === "tx_row_" + row) {
+          protections[i].remove();
+          break;
+        }
+      }
+    } else {
+      // Unchecked — re-lock this row
+      var protection = sheet.getRange(row, 1, 1, 7).protect().setDescription("tx_row_" + row);
+      protection.removeEditors(protection.getEditors());
+    }
+  }
 }
 
 // ============================================================
@@ -215,6 +235,9 @@ function addTransaction() {
   if (amount) {
     var nextRow = tx.getLastRow() + 1;
     tx.getRange(nextRow, 1, 1, 7).setValues([[date, source, type, amount, category, hours, notes]]);
+    tx.getRange(nextRow, 8).insertCheckboxes();
+    var prot1 = tx.getRange(nextRow, 1, 1, 7).protect().setDescription("tx_row_" + nextRow);
+    prot1.removeEditors(prot1.getEditors());
   }
 
   // Auto-post mileage deduction row if miles were entered
@@ -228,6 +251,9 @@ function addTransaction() {
       tx.getRange(mileRow, 1, 1, 7).setValues([
         [date, source, "Expense", -deduction, "Mileage Deduction", "", miles + " miles @ $" + rate]
       ]);
+      tx.getRange(mileRow, 8).insertCheckboxes();
+      var prot2 = tx.getRange(mileRow, 1, 1, 7).protect().setDescription("tx_row_" + mileRow);
+      prot2.removeEditors(prot2.getEditors());
     }
   }
 
@@ -285,6 +311,13 @@ function clearAllTransactions() {
   var ss      = SpreadsheetApp.getActiveSpreadsheet();
   var tx      = ss.getSheetByName("Transactions");
   if (!tx) return;
+
+  // Remove all row protections before deleting
+  var protections = tx.getProtections(SpreadsheetApp.ProtectionType.RANGE);
+  for (var i = 0; i < protections.length; i++) {
+    protections[i].remove();
+  }
+
   var lastRow = tx.getLastRow();
   if (lastRow > 1) tx.deleteRows(2, lastRow - 1);
   ui.alert("All transactions cleared.");
@@ -336,7 +369,7 @@ function runSetupTransactions() {
   tx.clearContents();
   tx.clearFormats();
 
-  var headers = ["Date", "Source", "Type", "Amount", "Category", "Hours", "Notes"];
+  var headers = ["Date", "Source", "Type", "Amount", "Category", "Hours", "Notes", "Edit?"];
   var hRange  = tx.getRange(1, 1, 1, headers.length);
   hRange.setValues([headers])
     .setBackground(DARK_BLUE)
@@ -358,6 +391,7 @@ function runSetupTransactions() {
   tx.setColumnWidth(5, 160);
   tx.setColumnWidth(6, 80);
   tx.setColumnWidth(7, 220);
+  tx.setColumnWidth(8, 60);
 
   // Format date and currency
   tx.getRange(2, 1, 999, 1).setNumberFormat("MM/dd/yyyy");
@@ -547,7 +581,9 @@ function runRebuildDashboard() {
 
   dash.clearContents();
   dash.clearFormats();
+  dash.clearNotes();
   try { dash.removeCheckboxes(); } catch(e) {}
+  dash.getRange("A1:D20").clearDataValidations();
 
   var sources = getIncomeSources(ss);
   if (sources.length === 0) sources = ["DoorDash", "Uber", "Freelance", "Notary", "Other"];
