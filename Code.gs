@@ -1,6 +1,15 @@
 // ============================================================
+// START: FILE HEADER — GSHEET SHOP EXPENSE TRACKER
+// ============================================================
 // GSheet Shop — AI-Ready Expense Tracker for Gig Workers
 // Colors: SJSU Gold & Dark Blue
+// ============================================================
+// END: FILE HEADER
+// ============================================================
+
+
+// ============================================================
+// START: COLOR CONSTANTS
 // ============================================================
 
 var DARK_BLUE  = "#0055A2";
@@ -9,7 +18,12 @@ var LIGHT_GOLD = "#FDF3D7";
 var LIGHT_BLUE = "#E8F0FA";
 
 // ============================================================
-// TRIGGERS
+// END: COLOR CONSTANTS
+// ============================================================
+
+
+// ============================================================
+// START: TRIGGERS — onOpen / onEdit
 // ============================================================
 
 function onOpen() {
@@ -37,7 +51,12 @@ function onEdit(e) {
 }
 
 // ============================================================
-// IRS RATE CHECK
+// END: TRIGGERS — onOpen / onEdit
+// ============================================================
+
+
+// ============================================================
+// START: IRS RATE CHECK
 // ============================================================
 
 function checkIRSRate() {
@@ -50,7 +69,7 @@ function checkIRSRate() {
     if (String(data[i][0]).indexOf("Business Mileage") !== -1) {
       var lastUpdated = data[i][3];
       if (lastUpdated) {
-        var year = new Date(lastUpdated).getFullYear();
+        var year        = new Date(lastUpdated).getFullYear();
         var currentYear = new Date().getFullYear();
         if (year < currentYear) {
           setup.setTabColor("red");
@@ -67,14 +86,19 @@ function checkIRSRate() {
 }
 
 // ============================================================
-// DYNAMIC SETUP READERS
+// END: IRS RATE CHECK
+// ============================================================
+
+
+// ============================================================
+// START: DYNAMIC SETUP READERS — getIncomeSources / getCategories
 // ============================================================
 
 function getIncomeSources(ss) {
   var setup = ss.getSheetByName("Setup");
   if (!setup) return [];
-  var data    = setup.getDataRange().getValues();
-  var sources = [];
+  var data      = setup.getDataRange().getValues();
+  var sources   = [];
   var inSection = false;
   for (var i = 0; i < data.length; i++) {
     var cell = String(data[i][0]).trim();
@@ -90,8 +114,8 @@ function getIncomeSources(ss) {
 function getCategories(ss) {
   var setup = ss.getSheetByName("Setup");
   if (!setup) return [];
-  var data    = setup.getDataRange().getValues();
-  var cats    = [];
+  var data      = setup.getDataRange().getValues();
+  var cats      = [];
   var inSection = false;
   for (var i = 0; i < data.length; i++) {
     var cell = String(data[i][0]).trim();
@@ -105,7 +129,12 @@ function getCategories(ss) {
 }
 
 // ============================================================
-// REFRESH DROPDOWNS
+// END: DYNAMIC SETUP READERS — getIncomeSources / getCategories
+// ============================================================
+
+
+// ============================================================
+// START: REFRESH DROPDOWNS
 // ============================================================
 
 function refreshDropdowns() {
@@ -124,12 +153,12 @@ function refreshDropdowns() {
   if (sources.length === 0) sources = ["DoorDash", "Uber", "Freelance", "Notary", "Other"];
   if (cats.length === 0)    cats    = ["Delivery Income", "Fuel", "Other Expense"];
 
-  // Transactions tab — columns B (source), C (type), E (category)
-  var lastRow = 1000;
+  var lastRow  = 1000;
   var srcRule  = SpreadsheetApp.newDataValidation().requireValueInList(sources, true).setAllowInvalid(false).build();
   var typeRule = SpreadsheetApp.newDataValidation().requireValueInList(types, true).setAllowInvalid(false).build();
   var catRule  = SpreadsheetApp.newDataValidation().requireValueInList(cats, true).setAllowInvalid(false).build();
 
+  // Transactions tab — columns B (source), C (type), E (category)
   txSheet.getRange(2, 2, lastRow - 1, 1).setDataValidation(srcRule);
   txSheet.getRange(2, 3, lastRow - 1, 1).setDataValidation(typeRule);
   txSheet.getRange(2, 5, lastRow - 1, 1).setDataValidation(catRule);
@@ -143,7 +172,12 @@ function refreshDropdowns() {
 }
 
 // ============================================================
-// TRANSACTION LOGIC
+// END: REFRESH DROPDOWNS
+// ============================================================
+
+
+// ============================================================
+// START: TRANSACTION LOGIC — addTransaction / getMileageRate / clearForm / clearAllTransactions
 // ============================================================
 
 function addTransaction() {
@@ -191,6 +225,8 @@ function addTransaction() {
   SpreadsheetApp.getUi().alert("Transaction added!");
 }
 
+// ------------------------------------------------------------
+
 function getMileageRate(ss) {
   var setup = ss.getSheetByName("Setup");
   if (!setup) return null;
@@ -203,6 +239,8 @@ function getMileageRate(ss) {
   }
   return null;
 }
+
+// ------------------------------------------------------------
 
 function clearForm() {
   var ss   = SpreadsheetApp.getActiveSpreadsheet();
@@ -220,6 +258,8 @@ function clearForm() {
   // Drawing button resets itself — nothing to clear here
 }
 
+// ------------------------------------------------------------
+
 function clearAllTransactions() {
   var ui       = SpreadsheetApp.getUi();
   var response = ui.prompt(
@@ -232,8 +272,8 @@ function clearAllTransactions() {
     ui.alert("Cancelled. No data was deleted.");
     return;
   }
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var tx = ss.getSheetByName("Transactions");
+  var ss      = SpreadsheetApp.getActiveSpreadsheet();
+  var tx      = ss.getSheetByName("Transactions");
   if (!tx) return;
   var lastRow = tx.getLastRow();
   if (lastRow > 1) tx.deleteRows(2, lastRow - 1);
@@ -241,7 +281,12 @@ function clearAllTransactions() {
 }
 
 // ============================================================
-// SETUP STEP 1 — CREATE TABS
+// END: TRANSACTION LOGIC — addTransaction / getMileageRate / clearForm / clearAllTransactions
+// ============================================================
+
+
+// ============================================================
+// START: SETUP STEP 1 — CREATE TABS
 // ============================================================
 
 function runCreateSheets() {
@@ -265,7 +310,12 @@ function runCreateSheets() {
 }
 
 // ============================================================
-// SETUP STEP 2 — TRANSACTIONS TAB
+// END: SETUP STEP 1 — CREATE TABS
+// ============================================================
+
+
+// ============================================================
+// START: SETUP STEP 2 — TRANSACTIONS TAB
 // ============================================================
 
 function runSetupTransactions() {
@@ -308,7 +358,12 @@ function runSetupTransactions() {
 }
 
 // ============================================================
-// SETUP STEP 3 — SETUP TAB
+// END: SETUP STEP 2 — TRANSACTIONS TAB
+// ============================================================
+
+
+// ============================================================
+// START: SETUP STEP 3 — SETUP TAB
 // ============================================================
 
 function runSetupTab() {
@@ -321,7 +376,7 @@ function runSetupTab() {
 
   var row = 1;
 
-  // Main header
+  // -- MAIN HEADER --
   setup.getRange(row, 1, 1, 4).merge()
     .setValue("SETUP & CONFIGURATION")
     .setBackground(DARK_BLUE).setFontColor("white")
@@ -330,7 +385,7 @@ function runSetupTab() {
   setup.setRowHeight(row, 40);
   row++;
 
-  // ── INCOME SOURCES ──
+  // -- INCOME SOURCES SECTION --
   row++;
   setup.getRange(row, 1, 1, 4).merge()
     .setValue("INCOME SOURCES")
@@ -361,7 +416,7 @@ function runSetupTab() {
     row++;
   });
 
-  // ── EXPENSE CATEGORIES ──
+  // -- EXPENSE CATEGORIES SECTION --
   row++;
   setup.getRange(row, 1, 1, 4).merge()
     .setValue("EXPENSE CATEGORIES")
@@ -412,7 +467,7 @@ function runSetupTab() {
     row++;
   });
 
-  // ── RECURRING EXPENSES ──
+  // -- RECURRING EXPENSES SECTION --
   row++;
   setup.getRange(row, 1, 1, 4).merge()
     .setValue("RECURRING EXPENSES (Reminder List)")
@@ -427,17 +482,17 @@ function runSetupTab() {
   row++;
 
   var recurring = [
-    ["Phone Bill",             "$100",  "Monthly",  ""],
-    ["Car Insurance",          "$150",  "Monthly",  ""],
-    ["Software Subscriptions", "$30",   "Monthly",  ""],
-    ["Internet",               "$60",   "Monthly",  ""]
+    ["Phone Bill",             "$100", "Monthly", ""],
+    ["Car Insurance",          "$150", "Monthly", ""],
+    ["Software Subscriptions", "$30",  "Monthly", ""],
+    ["Internet",               "$60",  "Monthly", ""]
   ];
   recurring.forEach(function(rec) {
     setup.getRange(row, 1, 1, 4).setValues([rec]).setBackground(LIGHT_BLUE);
     row++;
   });
 
-  // ── IRS MILEAGE RATE ──
+  // -- IRS MILEAGE RATE SECTION --
   row++;
   setup.getRange(row, 1, 1, 4).merge()
     .setValue("IRS MILEAGE RATE")
@@ -467,7 +522,12 @@ function runSetupTab() {
 }
 
 // ============================================================
-// SETUP STEP 4 — DASHBOARD
+// END: SETUP STEP 3 — SETUP TAB
+// ============================================================
+
+
+// ============================================================
+// START: SETUP STEP 4 — DASHBOARD
 // ============================================================
 
 function runRebuildDashboard() {
@@ -482,7 +542,9 @@ function runRebuildDashboard() {
   var sources = getIncomeSources(ss);
   if (sources.length === 0) sources = ["DoorDash", "Uber", "Freelance", "Notary", "Other"];
 
-  // ── Row 1: Main header ──
+  // -- TRANSACTION ENTRY FORM (ROWS 1-9) --
+
+  // Row 1: Main header
   dash.getRange("A1:D1").merge()
     .setValue("ADD NEW TRANSACTION")
     .setBackground(DARK_BLUE).setFontColor("white")
@@ -490,12 +552,12 @@ function runRebuildDashboard() {
     .setHorizontalAlignment("center");
   dash.setRowHeight(1, 40);
 
-  // ── Row 2: Field labels ──
+  // Row 2: Field labels (top row)
   dash.getRange("A2:D2").setValues([["Date", "Income Source", "Type", "Amount"]])
     .setBackground(GOLD).setFontColor(DARK_BLUE).setFontWeight("bold")
     .setHorizontalAlignment("center");
 
-  // ── Row 3: Input fields ──
+  // Row 3: Input fields (top row)
   dash.getRange("A3").setValue(new Date()).setNumberFormat("MM/dd/yyyy")
     .setBackground("white").setBorder(true, true, true, true, false, false);
   dash.getRange("B3").setBackground("white").setBorder(true, true, true, true, false, false);
@@ -503,12 +565,12 @@ function runRebuildDashboard() {
   dash.getRange("D3").setBackground("white").setNumberFormat("$#,##0.00")
     .setBorder(true, true, true, true, false, false);
 
-  // ── Row 4: Second row of labels ──
+  // Row 4: Field labels (bottom row)
   dash.getRange("A4:D4").setValues([["Category", "Miles Driven", "Hours Worked", "Notes"]])
     .setBackground(GOLD).setFontColor(DARK_BLUE).setFontWeight("bold")
     .setHorizontalAlignment("center");
 
-  // ── Row 5: Second row of inputs ──
+  // Row 5: Input fields (bottom row)
   dash.getRange("A5").setBackground("white").setBorder(true, true, true, true, false, false);
   dash.getRange("B5").setBackground("white").setNumberFormat("0.0")
     .setBorder(true, true, true, true, false, false);
@@ -516,14 +578,14 @@ function runRebuildDashboard() {
     .setBorder(true, true, true, true, false, false);
   dash.getRange("D5").setBackground("white").setBorder(true, true, true, true, false, false);
 
-  // ── Row 6: Mileage note ──
+  // Row 6: Mileage auto-calc note
   dash.getRange("A6:D6").merge()
     .setValue("Mileage deduction auto-calculates using the IRS rate in the Setup tab.")
     .setBackground(LIGHT_GOLD).setFontColor("#666666").setFontSize(9)
     .setHorizontalAlignment("center").setVerticalAlignment("middle");
   dash.setRowHeight(6, 24);
 
-  // ── Rows 7–9: Space for the SUBMIT Drawing button (added manually after setup) ──
+  // Rows 7-9: Space for the SUBMIT Drawing button (added manually after setup)
   dash.getRange("A7:D9").clearContent().clearFormat();
   dash.getRange("A7:D7").merge()
     .setValue("↓  Insert your SUBMIT button here (see Instructions tab)")
@@ -533,13 +595,13 @@ function runRebuildDashboard() {
   dash.setRowHeight(8, 50);
   dash.setRowHeight(9, 10);
 
-  // ── Row 10: Spacer ──
+  // Row 10: Spacer
   dash.setRowHeight(10, 20);
 
-  // ── DASHBOARD SECTION ──
+  // -- INCOME BY SOURCE TABLE (STARTS ROW 11) --
+
   var dashRow = 11;
 
-  // BY SOURCE header
   dash.getRange(dashRow, 1, 1, 4).merge()
     .setValue("INCOME BY SOURCE — YEAR TO DATE")
     .setBackground(DARK_BLUE).setFontColor("white")
@@ -568,7 +630,7 @@ function runRebuildDashboard() {
     dashRow++;
   });
 
-  // Totals row
+  // Totals row for By Source
   var firstDataRow = dashRow - sources.length;
   dash.getRange(dashRow, 1).setValue("TOTAL")
     .setBackground(GOLD).setFontColor(DARK_BLUE).setFontWeight("bold");
@@ -583,10 +645,10 @@ function runRebuildDashboard() {
     .setBackground(GOLD).setFontColor(DARK_BLUE).setFontWeight("bold").setNumberFormat("$#,##0.00");
   dashRow++;
 
-  // Spacer
-  dashRow++;
+  dashRow++; // Spacer row
 
-  // MONTHLY BREAKDOWN header
+  // -- MONTHLY BREAKDOWN TABLE --
+
   dash.getRange(dashRow, 1, 1, 4).merge()
     .setValue("MONTHLY BREAKDOWN — ALL 12 MONTHS")
     .setBackground(DARK_BLUE).setFontColor("white")
@@ -620,7 +682,7 @@ function runRebuildDashboard() {
     dashRow++;
   });
 
-  // Monthly totals
+  // Totals row for Monthly
   var mFirstRow = dashRow - 12;
   dash.getRange(dashRow, 1).setValue("TOTAL")
     .setBackground(GOLD).setFontColor(DARK_BLUE).setFontWeight("bold");
@@ -634,7 +696,8 @@ function runRebuildDashboard() {
     .setFormula("=SUM(D" + mFirstRow + ":D" + (dashRow - 1) + ")")
     .setBackground(GOLD).setFontColor(DARK_BLUE).setFontWeight("bold").setNumberFormat("$#,##0.00");
 
-  // Column widths
+  // -- COLUMN WIDTHS & FINAL FORMATTING --
+
   dash.setColumnWidth(1, 160);
   dash.setColumnWidth(2, 140);
   dash.setColumnWidth(3, 140);
@@ -650,13 +713,22 @@ function runRebuildDashboard() {
   SpreadsheetApp.getUi().alert("Dashboard rebuilt!\n\nNext: manually add the SUBMIT button (see Instructions tab), then run Step 5.");
 }
 
+// ------------------------------------------------------------
+// HELPER: columnLetter(col, row) — returns cell reference like "B14"
+// ------------------------------------------------------------
+
 function columnLetter(col, row) {
   var letters = ["", "A", "B", "C", "D", "E", "F", "G"];
   return letters[col] + row;
 }
 
 // ============================================================
-// SETUP STEP 5 — AI PROMPTS TAB
+// END: SETUP STEP 4 — DASHBOARD
+// ============================================================
+
+
+// ============================================================
+// START: SETUP STEP 5 — AI PROMPTS TAB
 // ============================================================
 
 function runSetupPrompts() {
@@ -669,6 +741,7 @@ function runSetupPrompts() {
 
   var row = 1;
 
+  // -- HEADER --
   prompts.getRange(row, 1, 1, 2).merge()
     .setValue("AI PROMPTS — Copy these into ChatGPT, Claude, or any AI")
     .setBackground(DARK_BLUE).setFontColor("white")
@@ -677,6 +750,7 @@ function runSetupPrompts() {
   prompts.setRowHeight(row, 40);
   row++;
 
+  // -- INSTRUCTIONS ROW --
   prompts.getRange(row, 1, 1, 2).merge()
     .setValue("Step 1: Export your data from the Transactions tab. Step 2: Copy a prompt below. Step 3: Paste both into any AI. Step 4: Paste the AI's output back here or into a note.")
     .setBackground(LIGHT_GOLD).setFontSize(10).setWrap(true)
@@ -684,6 +758,7 @@ function runSetupPrompts() {
   prompts.setRowHeight(row, 40);
   row++;
 
+  // -- PROMPT DATA --
   var promptData = [
     {
       title: "PROMPT 1 — Monthly Tax Summary",
@@ -740,12 +815,17 @@ function runSetupPrompts() {
 }
 
 // ============================================================
-// SETUP STEP 6 — INSTRUCTIONS TAB
+// END: SETUP STEP 5 — AI PROMPTS TAB
+// ============================================================
+
+
+// ============================================================
+// START: SETUP STEP 6 — INSTRUCTIONS TAB
 // ============================================================
 
 function runSetupInstructions() {
-  var ss    = SpreadsheetApp.getActiveSpreadsheet();
-  var inst  = ss.getSheetByName("Instructions");
+  var ss   = SpreadsheetApp.getActiveSpreadsheet();
+  var inst = ss.getSheetByName("Instructions");
   if (!inst) { SpreadsheetApp.getUi().alert("Run Step 1 first."); return; }
 
   inst.clearContents();
@@ -753,6 +833,7 @@ function runSetupInstructions() {
 
   var row = 1;
 
+  // -- HEADER --
   inst.getRange(row, 1, 1, 2).merge()
     .setValue("HOW TO USE THIS EXPENSE TRACKER")
     .setBackground(DARK_BLUE).setFontColor("white")
@@ -761,6 +842,7 @@ function runSetupInstructions() {
   inst.setRowHeight(row, 50);
   row++;
 
+  // -- INSTRUCTION SECTIONS --
   var sections = [
     {
       heading: "GETTING STARTED",
@@ -773,7 +855,7 @@ function runSetupInstructions() {
       heading: "ADDING THE SUBMIT BUTTON (one-time setup)",
       body: "1. On the Dashboard tab, click Insert → Drawing.\n" +
             "2. Click the Shapes tool → Shapes → Rounded Rectangle.\n" +
-            "3. Draw a wide pill shape. Fill color: silver (#C0C0C0). Border: none or dark blue.\n" +
+            "3. Draw a wide pill shape. Fill color: silver (#D4D4D4). Border: none or dark blue.\n" +
             "4. Double-click the shape and type: SUBMIT\n" +
             "5. Make the text bold, dark blue (#0055A2), font size 16.\n" +
             "6. Click Save & Close.\n" +
@@ -851,3 +933,7 @@ function runSetupInstructions() {
 
   SpreadsheetApp.getUi().alert("Setup complete! Your expense tracker is ready.");
 }
+
+// ============================================================
+// END: SETUP STEP 6 — INSTRUCTIONS TAB
+// ============================================================
