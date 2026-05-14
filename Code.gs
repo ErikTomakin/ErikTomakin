@@ -198,16 +198,26 @@ function addTransaction() {
   var hours    = dash.getRange("C5").getValue();
   var notes    = dash.getRange("D5").getValue();
 
-  if (!date || !source || !type || !amount) {
-    SpreadsheetApp.getUi().alert("Please fill in Date, Source, Type, and Amount before submitting.");
-    clearForm();
+  if (!source || !type) {
+    SpreadsheetApp.getUi().alert("Please fill in at least Income Source and Type before submitting.");
     return;
   }
 
-  var nextRow = tx.getLastRow() + 1;
-  tx.getRange(nextRow, 1, 1, 7).setValues([[date, source, type, amount, category, hours, notes]]);
+  if (!amount && (!miles || miles <= 0)) {
+    SpreadsheetApp.getUi().alert("Please enter an Amount or Miles Driven — nothing to record.");
+    return;
+  }
 
-  // Auto-post mileage deduction row
+  // Default date to today if left blank
+  if (!date) date = new Date();
+
+  // Only post a main transaction row if there is an amount
+  if (amount) {
+    var nextRow = tx.getLastRow() + 1;
+    tx.getRange(nextRow, 1, 1, 7).setValues([[date, source, type, amount, category, hours, notes]]);
+  }
+
+  // Auto-post mileage deduction row if miles were entered
   if (miles && miles > 0) {
     var rate = getMileageRate(ss);
     if (rate === null) {
