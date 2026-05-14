@@ -33,13 +33,7 @@ function onOpen() {
 }
 
 function onEdit(e) {
-  var sheet = e.range.getSheet();
-  var row   = e.range.getRow();
-  var col   = e.range.getColumn();
-
-  if (sheet.getName() === "Dashboard" && row === 8 && col === 1 && e.value === true) {
-    addTransaction();
-  }
+  // Drawing button calls addTransaction() directly — no checkbox needed
 }
 
 // ============================================================
@@ -223,7 +217,7 @@ function clearForm() {
   dash.getRange("B5").clearContent();
   dash.getRange("C5").clearContent();
   dash.getRange("D5").clearContent();
-  dash.getRange("A8").setValue(false);
+  // Drawing button resets itself — nothing to clear here
 }
 
 function clearAllTransactions() {
@@ -529,28 +523,15 @@ function runRebuildDashboard() {
     .setHorizontalAlignment("center").setVerticalAlignment("middle");
   dash.setRowHeight(6, 24);
 
-  // ── Rows 7–8: SUBMIT BUTTON ──
-  // Row 7 is a visual top border for the button
+  // ── Rows 7–9: Space for the SUBMIT Drawing button (added manually after setup) ──
+  dash.getRange("A7:D9").clearContent().clearFormat();
   dash.getRange("A7:D7").merge()
-    .setBackground(DARK_BLUE);
-  dash.setRowHeight(7, 6);
-
-  // Row 8: The actual button — checkbox in A8 triggers onEdit, rest styled as button label
-  dash.getRange("A8").insertCheckboxes();
-  dash.getRange("A8").setBackground(DARK_BLUE);
-
-  dash.getRange("B8:D8").merge()
-    .setValue("SUBMIT TRANSACTION")
-    .setBackground(DARK_BLUE).setFontColor(GOLD)
-    .setFontWeight("bold").setFontSize(16)
-    .setHorizontalAlignment("left").setVerticalAlignment("middle");
-
+    .setValue("↓  Insert your SUBMIT button here (see Instructions tab)")
+    .setBackground(LIGHT_GOLD).setFontColor("#888888").setFontSize(9)
+    .setHorizontalAlignment("center").setVerticalAlignment("middle");
+  dash.setRowHeight(7, 16);
   dash.setRowHeight(8, 50);
-
-  // Row 9: Visual bottom border for the button
-  dash.getRange("A9:D9").merge()
-    .setBackground(DARK_BLUE);
-  dash.setRowHeight(9, 6);
+  dash.setRowHeight(9, 10);
 
   // ── Row 10: Spacer ──
   dash.setRowHeight(10, 20);
@@ -662,7 +643,7 @@ function runRebuildDashboard() {
   dash.setFrozenRows(1);
 
   refreshDropdowns();
-  SpreadsheetApp.getUi().alert("Dashboard rebuilt! The submit button is in row 8. Run Step 5 next.");
+  SpreadsheetApp.getUi().alert("Dashboard rebuilt!\n\nNext: manually add the SUBMIT button (see Instructions tab), then run Step 5.");
 }
 
 function columnLetter(col, row) {
@@ -785,11 +766,22 @@ function runSetupInstructions() {
             "4. Run 'Refresh Dropdowns' from the Expense Tracker menu after any changes to Setup."
     },
     {
+      heading: "ADDING THE SUBMIT BUTTON (one-time setup)",
+      body: "1. On the Dashboard tab, click Insert → Drawing.\n" +
+            "2. Click the Shapes tool → Shapes → Rounded Rectangle.\n" +
+            "3. Draw a wide pill shape. Fill color: silver (#C0C0C0). Border: none or dark blue.\n" +
+            "4. Double-click the shape and type: SUBMIT\n" +
+            "5. Make the text bold, dark blue (#0055A2), font size 16.\n" +
+            "6. Click Save & Close.\n" +
+            "7. Right-click the floating button → Assign Script → type: addTransaction → OK.\n" +
+            "8. Drag the button to sit over rows 8–9 on the Dashboard."
+    },
+    {
       heading: "ADDING TRANSACTIONS",
       body: "1. Go to the Dashboard tab.\n" +
             "2. Fill in: Date, Income Source, Type (Income or Expense), and Amount.\n" +
             "3. Fill in Category, Miles Driven (optional), Hours Worked (optional), and Notes.\n" +
-            "4. Click the SUBMIT TRANSACTION button (the dark blue bar in row 8).\n" +
+            "4. Click the silver SUBMIT button.\n" +
             "5. If you entered mileage, a second row will auto-post your mileage deduction.\n" +
             "6. You can also use Expense Tracker menu → Add Transaction."
     },
