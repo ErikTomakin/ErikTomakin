@@ -416,6 +416,10 @@ function runSetupTransactions() {
   // Wrap text in Notes column (G)
   tx.getRange(2, 7, 999, 1).setWrap(true);
 
+  // Hide all columns beyond H so users can't wander off the edge
+  var maxCols = tx.getMaxColumns();
+  if (maxCols > 8) tx.hideColumns(9, maxCols - 8);
+
   tx.setFrozenRows(1);
   SpreadsheetApp.getUi().alert("Transactions tab ready! Run Step 3 next.");
 }
