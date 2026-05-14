@@ -51,17 +51,19 @@ function onEdit(e) {
   var row   = e.range.getRow();
   var col   = e.range.getColumn();
 
-  // Transactions tab: block edits to cols A-G unless Edit? checkbox (col H) is checked
+  // Transactions tab: warn before editing cols A-G unless Edit? checkbox (col H) is checked
   if (sheet.getName() === "Transactions" && col >= 1 && col <= 7 && row > 1) {
     var editCheckbox = sheet.getRange(row, 8).getValue();
     if (editCheckbox !== true) {
-      // Revert the change
-      if (e.oldValue !== undefined) {
-        e.range.setValue(e.oldValue);
-      } else {
-        e.range.clearContent();
+      var ui       = SpreadsheetApp.getUi();
+      var response = ui.alert("Edit Saved Transaction?", "You're about to edit a saved transaction. Continue?", ui.ButtonSet.YES_NO);
+      if (response !== ui.Button.YES) {
+        if (e.oldValue !== undefined) {
+          e.range.setValue(e.oldValue);
+        } else {
+          e.range.clearContent();
+        }
       }
-      SpreadsheetApp.getUi().alert("Check the 'Edit?' box in column H first to edit this row.");
       return;
     }
   }
