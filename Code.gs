@@ -38,6 +38,7 @@ function onOpen() {
     .addItem("4 — Rebuild Dashboard",   "runRebuildDashboard")
     .addItem("5 — Setup AI Prompts",    "runSetupPrompts")
     .addItem("6 — Setup Instructions",  "runSetupInstructions")
+    .addItem("7 — Setup Reports",       "runSetupReports")
     .addSeparator()
     .addItem("Refresh Dropdowns",       "refreshDropdowns")
     .addItem("Clear All Transactions",  "clearAllTransactions")
@@ -439,8 +440,8 @@ function clearAllTransactions() {
 
 function runCreateSheets() {
   var ss       = SpreadsheetApp.getActiveSpreadsheet();
-  var tabNames = ["Dashboard", "Transactions", "Setup", "AI Prompts", "Instructions"];
-  var colors   = [GOLD, DARK_BLUE, GOLD, DARK_BLUE, GOLD];
+  var tabNames = ["Dashboard", "Transactions", "Setup", "AI Prompts", "Instructions", "Reports"];
+  var colors   = [GOLD, DARK_BLUE, GOLD, DARK_BLUE, GOLD, DARK_BLUE];
 
   // Remove legacy tabs
   ["Sources", "Expenses"].forEach(function(name) {
@@ -1168,4 +1169,278 @@ function runSetupInstructions() {
 
 // ============================================================
 // END: SETUP STEP 6 — INSTRUCTIONS TAB
+// ============================================================
+
+
+// ============================================================
+// START: SETUP STEP 7 — REPORTS TAB
+// ============================================================
+
+function runSetupReports() {
+  var ss      = SpreadsheetApp.getActiveSpreadsheet();
+  var reports = ss.getSheetByName("Reports");
+  if (!reports) { SpreadsheetApp.getUi().alert("Run Step 1 first."); return; }
+
+  reports.clearContents();
+  reports.clearFormats();
+  reports.clearNotes();
+  reports.getRange(1, 1, reports.getMaxRows(), reports.getMaxColumns()).clearDataValidations();
+
+  // Remove any existing sheet or range protections
+  var sheetProts = reports.getProtections(SpreadsheetApp.ProtectionType.SHEET);
+  for (var p = 0; p < sheetProts.length; p++) sheetProts[p].remove();
+  var rangeProts = reports.getProtections(SpreadsheetApp.ProtectionType.RANGE);
+  for (var p = 0; p < rangeProts.length; p++) rangeProts[p].remove();
+
+  var sources = getIncomeSources(ss);
+  if (sources.length === 0) sources = ["DoorDash", "Uber", "Freelance", "Notary", "Other"];
+
+  // Read expense categories from Setup (only rows typed "Expense")
+  var expenseCats = [];
+  var setup = ss.getSheetByName("Setup");
+  if (setup) {
+    var setupData = setup.getDataRange().getValues();
+    var inCats = false;
+    for (var i = 0; i < setupData.length; i++) {
+      var cName = String(setupData[i][0]).trim();
+      var cType = String(setupData[i][1]).trim();
+      if (cName === "INCOME & EXPENSE CATEGORIES") { inCats = true; continue; }
+      if (inCats) {
+        if (cName !== "" && cName === cName.toUpperCase()) break;
+        if (cName.indexOf("\n") !== -1) break;
+        if (cName !== "" && cType === "Expense") expenseCats.push(cName);
+      }
+    }
+  }
+  if (expenseCats.length === 0) expenseCats = ["Mileage Deduction", "Fuel", "Other Expense"];
+
+  var row = 1;
+
+  // -- MAIN HEADER --
+  reports.getRange(row, 1, 1, 4).merge()
+    .setValue("INCOME & EXPENSE REPORT")
+    .setBackground(DARK_BLUE).setFontColor("white")
+    .setFontWeight("bold").setFontSize(16)
+    .setHorizontalAlignment("center");
+  reports.setRowHeight(row, 50);
+  row++;
+
+  // -- FILTER LABELS (row 2) --
+  reports.getRange(row, 1, 1, 4)
+    .setValues([["Start Date", "End Date", "Income Source", ""]])
+    .setBackground(GOLD).setFontColor(DARK_BLUE).setFontWeight("bold")
+    .setHorizontalAlignment("center");
+  row++;
+
+  // -- FILTER INPUTS (row 3) --
+  var filterRow = row;
+  var currentYear = new Date().getFullYear();
+  reports.getRange(row, 1)
+    .setValue(new Date(currentYear, 0, 1))
+    .setNumberFormat("MM/dd/yyyy")
+    .setBackground("white").setBorder(true, true, true, true, false, false)
+    .setHorizontalAlignment("center");
+  reports.getRange(row, 2)
+    .setValue(new Date())
+    .setNumberFormat("MM/dd/yyyy")
+    .setBackground("white").setBorder(true, true, true, true, false, false)
+    .setHorizontalAlignment("center");
+  var srcOptions  = ["All Sources"].concat(sources);
+  var srcDropRule = SpreadsheetApp.newDataValidation()
+    .requireValueInList(srcOptions, true).setAllowInvalid(false).build();
+  reports.getRange(row, 3)
+    .setValue("All Sources").setDataValidation(srcDropRule)
+    .setBackground("white").setBorder(true, true, true, true, false, false)
+    .setHorizontalAlignment("center");
+  reports.getRange(row, 4).setBackground(LIGHT_GOLD);
+  reports.setRowHeight(row, 36);
+  row++;
+
+  // -- FILTER TIP (row 4) --
+  reports.getRange(row, 1, 1, 4).merge()
+    .setValue("Change dates or income source above — all tables update automatically.")
+    .setBackground(LIGHT_GOLD).setFontColor("#666666").setFontSize(9).setFontStyle("italic")
+    .setHorizontalAlignment("center").setVerticalAlignment("middle");
+  reports.setRowHeight(row, 20);
+  row++;
+
+  row++; // spacer row 5
+
+  // ============================================================
+  // SECTION 1 — INCOME & EXPENSES BY SOURCE
+  // ============================================================
+  reports.getRange(row, 1, 1, 4).merge()
+    .setValue("INCOME & EXPENSES BY SOURCE")
+    .setBackground(DARK_BLUE).setFontColor("white")
+    .setFontWeight("bold").setFontSize(12)
+    .setHorizontalAlignment("center");
+  reports.setRowHeight(row, 32);
+  row++;
+
+  reports.getRange(row, 1, 1, 4)
+    .setValues([["Source", "Income", "Expenses", "Net"]])
+    .setBackground(GOLD).setFontColor(DARK_BLUE).setFontWeight("bold")
+    .setHorizontalAlignment("center");
+  row++;
+
+  var srcDataStart = row;
+  var fr = filterRow; // shorthand for embedding in formula strings
+
+  sources.forEach(function(src, idx) {
+    var bg = idx % 2 === 0 ? LIGHT_BLUE : "white";
+    reports.getRange(row, 1).setValue(src).setBackground(bg);
+
+    // Income: all-sources path shows every row; specific-source path blanks non-matching rows
+    var incF =
+      '=IF($C$' + fr + '="All Sources",' +
+        'IFERROR(SUMPRODUCT((Transactions!$A$2:$A$1000>=$A$' + fr + ')*(Transactions!$A$2:$A$1000<=$B$' + fr + ')*(Transactions!$B$2:$B$1000="' + src + '")*(Transactions!$C$2:$C$1000="Income")*Transactions!$D$2:$D$1000),0),' +
+        'IF(A' + row + '=$C$' + fr + ',' +
+          'IFERROR(SUMPRODUCT((Transactions!$A$2:$A$1000>=$A$' + fr + ')*(Transactions!$A$2:$A$1000<=$B$' + fr + ')*(Transactions!$B$2:$B$1000="' + src + '")*(Transactions!$C$2:$C$1000="Income")*Transactions!$D$2:$D$1000),0)' +
+        ',""))';
+    reports.getRange(row, 2).setFormula(incF).setBackground(bg).setNumberFormat("$#,##0.00");
+
+    var expF =
+      '=IF($C$' + fr + '="All Sources",' +
+        'IFERROR(SUMPRODUCT((Transactions!$A$2:$A$1000>=$A$' + fr + ')*(Transactions!$A$2:$A$1000<=$B$' + fr + ')*(Transactions!$B$2:$B$1000="' + src + '")*(Transactions!$C$2:$C$1000="Expense")*ABS(Transactions!$D$2:$D$1000)),0),' +
+        'IF(A' + row + '=$C$' + fr + ',' +
+          'IFERROR(SUMPRODUCT((Transactions!$A$2:$A$1000>=$A$' + fr + ')*(Transactions!$A$2:$A$1000<=$B$' + fr + ')*(Transactions!$B$2:$B$1000="' + src + '")*(Transactions!$C$2:$C$1000="Expense")*ABS(Transactions!$D$2:$D$1000)),0)' +
+        ',""))';
+    reports.getRange(row, 3).setFormula(expF).setBackground(bg).setNumberFormat("$#,##0.00");
+
+    // Net: blank if both Income and Expense cells are blank (specific-source, non-matching row)
+    reports.getRange(row, 4)
+      .setFormula('=IF(AND(B' + row + '="",C' + row + '=""),"",IFERROR(B' + row + ',0)-IFERROR(C' + row + ',0))')
+      .setBackground(bg).setNumberFormat("$#,##0.00");
+
+    row++;
+  });
+
+  // TOTAL row (section 1)
+  var srcTotalRow = row;
+  reports.getRange(row, 1).setValue("TOTAL")
+    .setBackground(GOLD).setFontColor(DARK_BLUE).setFontWeight("bold");
+  reports.getRange(row, 2)
+    .setFormula('=IFERROR(SUM(B' + srcDataStart + ':B' + (row - 1) + '),0)')
+    .setBackground(GOLD).setFontColor(DARK_BLUE).setFontWeight("bold").setNumberFormat("$#,##0.00");
+  reports.getRange(row, 3)
+    .setFormula('=IFERROR(SUM(C' + srcDataStart + ':C' + (row - 1) + '),0)')
+    .setBackground(GOLD).setFontColor(DARK_BLUE).setFontWeight("bold").setNumberFormat("$#,##0.00");
+  reports.getRange(row, 4)
+    .setFormula('=B' + row + '-C' + row)
+    .setBackground(GOLD).setFontColor(DARK_BLUE).setFontWeight("bold").setNumberFormat("$#,##0.00");
+  row++;
+
+  row++; // spacer
+
+  // ============================================================
+  // SECTION 2 — EXPENSES BY CATEGORY
+  // ============================================================
+  reports.getRange(row, 1, 1, 4).merge()
+    .setValue("EXPENSES BY CATEGORY")
+    .setBackground(DARK_BLUE).setFontColor("white")
+    .setFontWeight("bold").setFontSize(12)
+    .setHorizontalAlignment("center");
+  reports.setRowHeight(row, 32);
+  row++;
+
+  reports.getRange(row, 1, 1, 4)
+    .setValues([["Category", "Amount", "", ""]])
+    .setBackground(GOLD).setFontColor(DARK_BLUE).setFontWeight("bold")
+    .setHorizontalAlignment("center");
+  row++;
+
+  var catDataStart = row;
+  expenseCats.forEach(function(cat, idx) {
+    var bg = idx % 2 === 0 ? LIGHT_BLUE : "white";
+    reports.getRange(row, 1).setValue(cat).setBackground(bg);
+    reports.getRange(row, 3, 1, 2).setBackground(bg);
+
+    var catF =
+      '=IFERROR(SUMPRODUCT(' +
+        '(Transactions!$A$2:$A$1000>=$A$' + fr + ')*' +
+        '(Transactions!$A$2:$A$1000<=$B$' + fr + ')*' +
+        'IF($C$' + fr + '="All Sources",1,(Transactions!$B$2:$B$1000=$C$' + fr + '))*' +
+        '(Transactions!$C$2:$C$1000="Expense")*' +
+        '(Transactions!$E$2:$E$1000="' + cat + '")*' +
+        'ABS(Transactions!$D$2:$D$1000)' +
+      '),0)';
+    reports.getRange(row, 2).setFormula(catF).setBackground(bg).setNumberFormat("$#,##0.00");
+    row++;
+  });
+
+  // TOTAL row (section 2)
+  reports.getRange(row, 1).setValue("TOTAL EXPENSES")
+    .setBackground(GOLD).setFontColor(DARK_BLUE).setFontWeight("bold");
+  reports.getRange(row, 2)
+    .setFormula('=IFERROR(SUM(B' + catDataStart + ':B' + (row - 1) + '),0)')
+    .setBackground(GOLD).setFontColor(DARK_BLUE).setFontWeight("bold").setNumberFormat("$#,##0.00");
+  reports.getRange(row, 3, 1, 2).setBackground(GOLD);
+  row++;
+
+  row++; // spacer
+
+  // ============================================================
+  // SECTION 3 — OVERALL SUMMARY
+  // ============================================================
+  reports.getRange(row, 1, 1, 4).merge()
+    .setValue("OVERALL SUMMARY")
+    .setBackground(DARK_BLUE).setFontColor("white")
+    .setFontWeight("bold").setFontSize(12)
+    .setHorizontalAlignment("center");
+  reports.setRowHeight(row, 32);
+  row++;
+
+  var totalIncRow = row;
+  reports.getRange(row, 1).setValue("Total Income").setFontWeight("bold").setBackground(LIGHT_GOLD);
+  reports.getRange(row, 2)
+    .setFormula('=IFERROR(SUM(B' + srcDataStart + ':B' + (srcTotalRow - 1) + '),0)')
+    .setBackground(LIGHT_GOLD).setNumberFormat("$#,##0.00");
+  reports.getRange(row, 3, 1, 2).setBackground(LIGHT_GOLD);
+  row++;
+
+  var totalExpRow = row;
+  reports.getRange(row, 1).setValue("Total Expenses").setFontWeight("bold").setBackground(LIGHT_BLUE);
+  reports.getRange(row, 2)
+    .setFormula('=IFERROR(SUM(C' + srcDataStart + ':C' + (srcTotalRow - 1) + '),0)')
+    .setBackground(LIGHT_BLUE).setNumberFormat("$#,##0.00");
+  reports.getRange(row, 3, 1, 2).setBackground(LIGHT_BLUE);
+  row++;
+
+  var netRow = row;
+  reports.getRange(row, 1).setValue("Net Profit").setFontWeight("bold").setBackground(LIGHT_GOLD);
+  reports.getRange(row, 2)
+    .setFormula('=B' + totalIncRow + '-B' + totalExpRow)
+    .setBackground(LIGHT_GOLD).setNumberFormat("$#,##0.00");
+  reports.getRange(row, 3, 1, 2).setBackground(LIGHT_GOLD);
+  row++;
+
+  reports.getRange(row, 1).setValue("Est. Tax Set-Aside (28%)").setFontWeight("bold").setBackground(LIGHT_BLUE);
+  reports.getRange(row, 2)
+    .setFormula('=MAX(0,B' + netRow + '*0.28)')
+    .setBackground(LIGHT_BLUE).setNumberFormat("$#,##0.00");
+  reports.getRange(row, 3, 1, 2).setBackground(LIGHT_BLUE);
+  row++;
+
+  // -- COLUMN WIDTHS --
+  reports.setColumnWidth(1, 200);
+  reports.setColumnWidth(2, 140);
+  reports.setColumnWidth(3, 140);
+  reports.setColumnWidth(4, 140);
+
+  // Hide columns beyond D
+  var maxCols = reports.getMaxColumns();
+  if (maxCols > 4) reports.hideColumns(5, maxCols - 4);
+
+  reports.setFrozenRows(1);
+
+  // Lock the whole sheet, but leave the three filter input cells editable
+  var prot = reports.protect().setDescription("Reports - layout locked");
+  prot.setUnprotectedRanges([reports.getRange(filterRow, 1, 1, 3)]);
+  prot.removeEditors(prot.getEditors());
+
+  SpreadsheetApp.getUi().alert("Reports tab ready!\n\nUse the date and source filters in row 3 to slice the report.");
+}
+
+// ============================================================
+// END: SETUP STEP 7 — REPORTS TAB
 // ============================================================
