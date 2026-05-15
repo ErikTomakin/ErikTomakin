@@ -447,7 +447,12 @@ function runSetupTab() {
   setup.clearContents();
   setup.clearFormats();
 
-  var row = 1;
+  // Remove any existing protections on this sheet
+  var existingProts = setup.getProtections(SpreadsheetApp.ProtectionType.RANGE);
+  for (var p = 0; p < existingProts.length; p++) existingProts[p].remove();
+
+  var row        = 1;
+  var headerRows = []; // track rows to lock at the end
 
   // -- MAIN HEADER --
   setup.getRange(row, 1, 1, 4).merge()
@@ -456,6 +461,7 @@ function runSetupTab() {
     .setFontWeight("bold").setFontSize(14)
     .setHorizontalAlignment("center");
   setup.setRowHeight(row, 40);
+  headerRows.push(row);
   row++;
 
   // -- INCOME SOURCES SECTION --
@@ -466,10 +472,12 @@ function runSetupTab() {
     .setFontWeight("bold").setFontSize(12)
     .setHorizontalAlignment("center");
   setup.setRowHeight(row, 32);
+  headerRows.push(row);
   row++;
 
   setup.getRange(row, 1, 1, 4).setValues([["Source Name", "Description", "", ""]])
     .setBackground(DARK_BLUE).setFontColor("white").setFontWeight("bold");
+  headerRows.push(row);
   row++;
 
   var incomeSources = [
@@ -489,47 +497,45 @@ function runSetupTab() {
     row++;
   });
 
-  // -- EXPENSE CATEGORIES SECTION --
+  // -- INCOME & EXPENSE CATEGORIES SECTION --
   row++;
   setup.getRange(row, 1, 1, 4).merge()
-    .setValue("EXPENSE CATEGORIES")
+    .setValue("INCOME & EXPENSE CATEGORIES")
     .setBackground(GOLD).setFontColor(DARK_BLUE)
     .setFontWeight("bold").setFontSize(12)
     .setHorizontalAlignment("center");
   setup.setRowHeight(row, 32);
+  headerRows.push(row);
   row++;
 
   setup.getRange(row, 1, 1, 4).setValues([["Category Name", "Type", "", ""]])
     .setBackground(DARK_BLUE).setFontColor("white").setFontWeight("bold");
+  headerRows.push(row);
   row++;
 
   var categories = [
-    ["Delivery Income",        "Income"],
-    ["Ride Income",            "Income"],
-    ["Freelance Income",       "Income"],
-    ["Notary Income",          "Income"],
-    ["Product Sales",          "Income"],
-    ["Affiliate Income",       "Income"],
-    ["Subscription Income",    "Income"],
-    ["Other Income",           "Income"],
-    ["Mileage Deduction",      "Expense"],
-    ["Fuel",                   "Expense"],
-    ["Vehicle Maintenance",    "Expense"],
-    ["Car Insurance",          "Expense"],
-    ["Parking & Tolls",        "Expense"],
-    ["Shipping",               "Expense"],
-    ["Packaging",              "Expense"],
-    ["Platform Fees",          "Expense"],
-    ["Product Supplies",       "Expense"],
-    ["Software Subscriptions", "Expense"],
-    ["Printing & Supplies",    "Expense"],
-    ["Professional Fees",      "Expense"],
-    ["Phone Bill",             "Expense"],
-    ["Internet",               "Expense"],
-    ["Home Office",            "Expense"],
-    ["Advertising",            "Expense"],
-    ["Recurring Expense",      "Expense"],
-    ["Other Expense",          "Expense"]
+    ["Base",                  "Income"],
+    ["Bonus",                 "Income"],
+    ["Tips",                  "Income"],
+    ["Other Income",          "Income"],
+    ["Mileage Deduction",     "Expense"],
+    ["Fuel",                  "Expense"],
+    ["Vehicle Maintenance",   "Expense"],
+    ["Car Insurance",         "Expense"],
+    ["Parking & Tolls",       "Expense"],
+    ["Shipping",              "Expense"],
+    ["Packaging",             "Expense"],
+    ["Platform Fees",         "Expense"],
+    ["Product Supplies",      "Expense"],
+    ["Software Subscriptions","Expense"],
+    ["Printing & Supplies",   "Expense"],
+    ["Professional Fees",     "Expense"],
+    ["Phone Bill",            "Expense"],
+    ["Internet",              "Expense"],
+    ["Home Office",           "Expense"],
+    ["Advertising",           "Expense"],
+    ["Recurring Expense",     "Expense"],
+    ["Other Expense",         "Expense"]
   ];
 
   categories.forEach(function(cat) {
@@ -548,10 +554,12 @@ function runSetupTab() {
     .setFontWeight("bold").setFontSize(12)
     .setHorizontalAlignment("center");
   setup.setRowHeight(row, 32);
+  headerRows.push(row);
   row++;
 
   setup.getRange(row, 1, 1, 4).setValues([["Expense", "Amount", "Frequency", "Next Due Date"]])
     .setBackground(DARK_BLUE).setFontColor("white").setFontWeight("bold");
+  headerRows.push(row);
   row++;
 
   var recurring = [
@@ -573,10 +581,12 @@ function runSetupTab() {
     .setFontWeight("bold").setFontSize(12)
     .setHorizontalAlignment("center");
   setup.setRowHeight(row, 32);
+  headerRows.push(row);
   row++;
 
   setup.getRange(row, 1, 1, 4).setValues([["Description", "Rate (per mile)", "Effective Date", "Last Updated"]])
     .setBackground(DARK_BLUE).setFontColor("white").setFontWeight("bold");
+  headerRows.push(row);
   row++;
 
   setup.getRange(row, 1, 1, 4).setValues([
@@ -593,6 +603,12 @@ function runSetupTab() {
   // Hide all columns beyond D
   var maxCols = setup.getMaxColumns();
   if (maxCols > 4) setup.hideColumns(5, maxCols - 4);
+
+  // Lock all header/banner rows
+  headerRows.forEach(function(r) {
+    var prot = setup.getRange(r, 1, 1, 4).protect().setDescription("setup_header_" + r);
+    prot.removeEditors(prot.getEditors());
+  });
 
   refreshDropdowns();
   SpreadsheetApp.getUi().alert("Setup tab ready! Run Step 4 next.");
