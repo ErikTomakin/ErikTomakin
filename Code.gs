@@ -499,6 +499,15 @@ function runSetupTab() {
     row++;
   });
 
+  // Row 14: Instruction note (locked)
+  setup.getRange(row, 1, 1, 4).merge()
+    .setValue("↑ To add a new income source, type it in an empty row above. Then run Expense Tracker → Refresh Dropdowns.")
+    .setBackground("#FFF9C4").setFontColor("#888888").setFontSize(9).setFontStyle("italic")
+    .setHorizontalAlignment("center").setVerticalAlignment("middle");
+  setup.setRowHeight(row, 20);
+  headerRows.push(row);
+  row++;
+
   // -- INCOME & EXPENSE CATEGORIES SECTION --
   row++;
   setup.getRange(row, 1, 1, 4).merge()
