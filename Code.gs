@@ -147,6 +147,7 @@ function getIncomeSources(ss) {
     if (cell === "INCOME SOURCES") { inSection = true; continue; }
     if (inSection) {
       if (cell !== "" && cell === cell.toUpperCase()) break; // hit next section header, stop
+      if (cell.indexOf("\n") !== -1) break;                 // multiline = instruction note, stop
       if (cell !== "") sources.push(cell);                  // skip blanks, collect valid entries
     }
   }
@@ -179,6 +180,92 @@ function getCategories(ss) {
 // START: REFRESH DROPDOWNS
 // ============================================================
 
+// Private: applies data validation rules only — no alert, no dashboard rebuild
+function applyDropdownValidations_(ss, sources, cats) {
+  var txSheet = ss.getSheetByName("Transactions");
+  var dash    = ss.getSheetByName("Dashboard");
+  if (!txSheet || !dash) return;
+
+  var types    = ["Income", "Expense"];
+  var lastRow  = 1000;
+  var srcRule  = SpreadsheetApp.newDataValidation().requireValueInList(sources, true).setAllowInvalid(false).build();
+  var typeRule = SpreadsheetApp.newDataValidation().requireValueInList(types, true).setAllowInvalid(false).build();
+  var catRule  = SpreadsheetApp.newDataValidation().requireValueInList(cats, true).setAllowInvalid(false).build();
+
+  txSheet.getRange(2, 2, lastRow - 1, 1).setDataValidation(srcRule);
+  txSheet.getRange(2, 3, lastRow - 1, 1).setDataValidation(typeRule);
+  txSheet.getRange(2, 5, lastRow - 1, 1).setDataValidation(catRule);
+  dash.getRange("B3").setDataValidation(srcRule);
+  dash.getRange("C3").setDataValidation(typeRule);
+  dash.getRange("A5").setDataValidation(catRule);
+}
+
+// Private: surgically rebuilds the Income by Source rows on the dashboard
+function rebuildDashboardSourceTable_(ss, sources) {
+  var dash = ss.getSheetByName("Dashboard");
+  if (!dash) return;
+
+  var DATA_START_ROW = 13; // first source data row (set by runRebuildDashboard)
+
+  var lastRow = dash.getLastRow();
+  if (lastRow < DATA_START_ROW) return; // dashboard not set up yet
+
+  // Find the first TOTAL row at or after row 13
+  var colAVals = dash.getRange(DATA_START_ROW, 1, lastRow - DATA_START_ROW + 1, 1).getValues();
+  var firstTotalRow = null;
+  for (var i = 0; i < colAVals.length; i++) {
+    if (String(colAVals[i][0]).trim() === "TOTAL") {
+      firstTotalRow = DATA_START_ROW + i;
+      break;
+    }
+  }
+  if (firstTotalRow === null) return; // dashboard not built properly
+
+  var oldSourceCount = firstTotalRow - DATA_START_ROW;
+  var newSourceCount = sources.length;
+
+  // Adjust row count if needed — delete/insert from the end of the new data block
+  if (newSourceCount < oldSourceCount) {
+    dash.deleteRows(DATA_START_ROW + newSourceCount, oldSourceCount - newSourceCount);
+  } else if (newSourceCount > oldSourceCount) {
+    dash.insertRowsBefore(firstTotalRow, newSourceCount - oldSourceCount);
+  }
+
+  // Rewrite source data rows
+  var dashRow = DATA_START_ROW;
+  sources.forEach(function(src, idx) {
+    var bg = idx % 2 === 0 ? LIGHT_BLUE : "white";
+    dash.getRange(dashRow, 1, 1, 4).clearContent().clearFormat();
+    dash.getRange(dashRow, 1).setValue(src).setBackground(bg);
+    dash.getRange(dashRow, 2)
+      .setFormula('=IFERROR(SUMPRODUCT((Transactions!B$2:B$1000="' + src + '")*(Transactions!C$2:C$1000="Income")*Transactions!D$2:D$1000),0)')
+      .setBackground(bg).setNumberFormat("$#,##0.00");
+    dash.getRange(dashRow, 3)
+      .setFormula('=IFERROR(SUMPRODUCT((Transactions!B$2:B$1000="' + src + '")*(Transactions!C$2:C$1000="Expense")*ABS(Transactions!D$2:D$1000)),0)')
+      .setBackground(bg).setNumberFormat("$#,##0.00");
+    dash.getRange(dashRow, 4)
+      .setFormula("=" + columnLetter(2, dashRow) + "-" + columnLetter(3, dashRow))
+      .setBackground(bg).setNumberFormat("$#,##0.00");
+    dashRow++;
+  });
+
+  // Rewrite TOTAL row
+  var newTotalRow = DATA_START_ROW + newSourceCount;
+  dash.getRange(newTotalRow, 1, 1, 4).clearContent().clearFormat();
+  dash.getRange(newTotalRow, 1).setValue("TOTAL")
+    .setBackground(GOLD).setFontColor(DARK_BLUE).setFontWeight("bold");
+  dash.getRange(newTotalRow, 2)
+    .setFormula("=SUM(B" + DATA_START_ROW + ":B" + (newTotalRow - 1) + ")")
+    .setBackground(GOLD).setFontColor(DARK_BLUE).setFontWeight("bold").setNumberFormat("$#,##0.00");
+  dash.getRange(newTotalRow, 3)
+    .setFormula("=SUM(C" + DATA_START_ROW + ":C" + (newTotalRow - 1) + ")")
+    .setBackground(GOLD).setFontColor(DARK_BLUE).setFontWeight("bold").setNumberFormat("$#,##0.00");
+  dash.getRange(newTotalRow, 4)
+    .setFormula("=SUM(D" + DATA_START_ROW + ":D" + (newTotalRow - 1) + ")")
+    .setBackground(GOLD).setFontColor(DARK_BLUE).setFontWeight("bold").setNumberFormat("$#,##0.00");
+}
+
+// Public: Expense Tracker → Refresh Dropdowns
 function refreshDropdowns() {
   var ss      = SpreadsheetApp.getActiveSpreadsheet();
   var txSheet = ss.getSheetByName("Transactions");
@@ -190,27 +277,14 @@ function refreshDropdowns() {
 
   var sources = getIncomeSources(ss);
   var cats    = getCategories(ss);
-  var types   = ["Income", "Expense"];
 
   if (sources.length === 0) sources = ["DoorDash", "Uber", "Freelance", "Notary", "Other"];
   if (cats.length === 0)    cats    = ["Delivery Income", "Fuel", "Other Expense"];
 
-  var lastRow  = 1000;
-  var srcRule  = SpreadsheetApp.newDataValidation().requireValueInList(sources, true).setAllowInvalid(false).build();
-  var typeRule = SpreadsheetApp.newDataValidation().requireValueInList(types, true).setAllowInvalid(false).build();
-  var catRule  = SpreadsheetApp.newDataValidation().requireValueInList(cats, true).setAllowInvalid(false).build();
+  rebuildDashboardSourceTable_(ss, sources);
+  applyDropdownValidations_(ss, sources, cats);
 
-  // Transactions tab — columns B (source), C (type), E (category)
-  txSheet.getRange(2, 2, lastRow - 1, 1).setDataValidation(srcRule);
-  txSheet.getRange(2, 3, lastRow - 1, 1).setDataValidation(typeRule);
-  txSheet.getRange(2, 5, lastRow - 1, 1).setDataValidation(catRule);
-
-  // Dashboard entry form
-  dash.getRange("B3").setDataValidation(srcRule);
-  dash.getRange("C3").setDataValidation(typeRule);
-  dash.getRange("A5").setDataValidation(catRule);
-
-  SpreadsheetApp.getUi().alert("Dropdowns refreshed!");
+  SpreadsheetApp.getUi().alert("Dropdowns and dashboard updated!");
 }
 
 // ============================================================
@@ -509,7 +583,11 @@ function runSetupTab() {
     row++;
   });
 
-  // Row 14: Instruction note (locked)
+  // Small spacer between last source and instruction note
+  setup.setRowHeight(row, 8);
+  row++;
+
+  // Instruction note (locked)
   setup.getRange(row, 1, 1, 4).merge()
     .setValue(
       "HOW TO EDIT INCOME SOURCES:\n" +
@@ -637,7 +715,11 @@ function runSetupTab() {
     prot.removeEditors(prot.getEditors());
   });
 
-  refreshDropdowns();
+  var sources = getIncomeSources(ss);
+  var cats    = getCategories(ss);
+  if (sources.length === 0) sources = ["DoorDash", "Uber", "Freelance", "Notary", "Other"];
+  if (cats.length === 0)    cats    = ["Delivery Income", "Fuel", "Other Expense"];
+  applyDropdownValidations_(ss, sources, cats);
   SpreadsheetApp.getUi().alert("Setup tab ready! Run Step 4 next.");
 }
 
@@ -715,7 +797,7 @@ function runRebuildDashboard() {
   dash.getRange("A8").insertCheckboxes().setValue(false)
     .setBackground(DARK_BLUE);
   dash.getRange("B8:D8").merge()
-    .setValue("✔  CHECK BOX TO SUBMIT — Allow 2-3 seconds to process")
+    .setValue("CHECK THE BOX TO SUBMIT  ✔  (Allow 2-3 seconds)")
     .setBackground(DARK_BLUE).setFontColor(GOLD)
     .setFontWeight("bold").setFontSize(13)
     .setHorizontalAlignment("center").setVerticalAlignment("middle");
@@ -839,8 +921,10 @@ function runRebuildDashboard() {
 
   dash.setFrozenRows(1);
 
-  refreshDropdowns();
-  SpreadsheetApp.getUi().alert("Dashboard rebuilt!\n\nNext: manually add the SUBMIT button (see Instructions tab), then run Step 5.");
+  var cats = getCategories(ss);
+  if (cats.length === 0) cats = ["Delivery Income", "Fuel", "Other Expense"];
+  applyDropdownValidations_(ss, sources, cats);
+  SpreadsheetApp.getUi().alert("Dashboard rebuilt! Run Step 5 next.");
 }
 
 // ------------------------------------------------------------
