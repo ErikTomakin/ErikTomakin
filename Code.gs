@@ -501,10 +501,16 @@ function runSetupTab() {
 
   // Row 14: Instruction note (locked)
   setup.getRange(row, 1, 1, 4).merge()
-    .setValue("↑ To add a new income source, type it in an empty row above. Then run Expense Tracker → Refresh Dropdowns.")
-    .setBackground("#FFF9C4").setFontColor("#888888").setFontSize(9).setFontStyle("italic")
-    .setHorizontalAlignment("center").setVerticalAlignment("middle");
-  setup.setRowHeight(row, 20);
+    .setValue(
+      "HOW TO EDIT INCOME SOURCES:\n" +
+      "• ADD: Type a new source in any empty row above, then run Expense Tracker → Refresh Dropdowns.\n" +
+      "• REMOVE: Click the source name and press Delete to clear it, then run Refresh Dropdowns.\n" +
+      "• RENAME: Click the source name and type the new name (e.g. Etsy → Mayhem Marketplace), then run Refresh Dropdowns.\n" +
+      "Note: Renaming only affects new entries. Old transactions will still show the previous name."
+    )
+    .setBackground("#FFF9C4").setFontColor("#666666").setFontSize(9).setFontStyle("italic")
+    .setHorizontalAlignment("left").setVerticalAlignment("middle").setWrap(true);
+  setup.setRowHeight(row, 80);
   headerRows.push(row);
   row++;
 
