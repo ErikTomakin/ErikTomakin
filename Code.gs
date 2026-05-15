@@ -51,8 +51,8 @@ function onEdit(e) {
   var row   = e.range.getRow();
   var col   = e.range.getColumn();
 
-  // Dashboard: mobile submit — checkbox in A11 triggers addTransaction
-  if (sheet.getName() === "Dashboard" && row === 11 && col === 1 && e.value === true) {
+  // Dashboard: checkbox in A8 triggers addTransaction
+  if (sheet.getName() === "Dashboard" && row === 8 && col === 1 && e.value === true) {
     addTransaction();
     return;
   }
@@ -313,7 +313,7 @@ function clearForm() {
   dash.getRange("B5").clearContent();
   dash.getRange("C5").clearContent();
   dash.getRange("D5").clearContent();
-  dash.getRange("A11").setValue(false);
+  dash.getRange("A8").setValue(false);
 }
 
 // ------------------------------------------------------------
@@ -697,36 +697,30 @@ function runRebuildDashboard() {
     .setHorizontalAlignment("center").setVerticalAlignment("middle");
   dash.setRowHeight(6, 24);
 
-  // Rows 7-9: Space for the SUBMIT Drawing button (added manually after setup)
-  dash.getRange("A7:D9").clearContent().clearFormat();
-  dash.getRange("A7:D7").merge()
-    .setValue("↓  Insert your SUBMIT button here (see Instructions tab)")
-    .setBackground(LIGHT_GOLD).setFontColor("#888888").setFontSize(9)
+  // Row 7: Top border of submit button
+  dash.getRange("A7:D7").merge().setBackground(DARK_BLUE);
+  dash.setRowHeight(7, 6);
+
+  // Row 8: SUBMIT button — checkbox in A8 activates it, label in B8:D8 tells user what to do
+  dash.getRange("A8").insertCheckboxes().setValue(false)
+    .setBackground(DARK_BLUE);
+  dash.getRange("B8:D8").merge()
+    .setValue("✔  CHECK THIS BOX TO SUBMIT YOUR TRANSACTION")
+    .setBackground(DARK_BLUE).setFontColor(GOLD)
+    .setFontWeight("bold").setFontSize(13)
     .setHorizontalAlignment("center").setVerticalAlignment("middle");
-  dash.setRowHeight(7, 16);
-  dash.getRange("A8:D8").merge().setBackground(GOLD);
   dash.setRowHeight(8, 50);
-  dash.getRange("A9:D9").merge().setBackground(GOLD);
-  dash.setRowHeight(9, 10);
+
+  // Row 9: Bottom border of submit button
+  dash.getRange("A9:D9").merge().setBackground(DARK_BLUE);
+  dash.setRowHeight(9, 6);
 
   // Row 10: Spacer
-  dash.getRange("A10:D10").merge().setBackground(GOLD);
-  dash.setRowHeight(10, 20);
+  dash.setRowHeight(10, 16);
 
-  // Row 11: Mobile submit checkbox
-  dash.getRange("A11").insertCheckboxes().setValue(false).setBackground(LIGHT_GOLD);
-  dash.getRange("B11:D11").merge()
-    .setValue("Tap here to submit on mobile (check the box)")
-    .setBackground(LIGHT_GOLD).setFontColor("#888888").setFontSize(9)
-    .setHorizontalAlignment("left").setVerticalAlignment("middle");
-  dash.setRowHeight(11, 22);
+  // -- INCOME BY SOURCE TABLE (STARTS ROW 11) --
 
-  // Row 12: Spacer
-  dash.setRowHeight(12, 16);
-
-  // -- INCOME BY SOURCE TABLE (STARTS ROW 13) --
-
-  var dashRow = 13;
+  var dashRow = 11;
 
   dash.getRange(dashRow, 1, 1, 4).merge()
     .setValue("INCOME BY SOURCE — YEAR TO DATE")
