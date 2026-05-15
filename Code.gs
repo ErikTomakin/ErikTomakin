@@ -322,6 +322,7 @@ function clearForm() {
   dash.getRange("A8").setValue(false);
   dash.getRange("A7:D9").setBackground(DARK_BLUE);
   dash.getRange("B8:D8").setFontColor(GOLD);
+  SpreadsheetApp.flush();
 }
 
 // ------------------------------------------------------------
