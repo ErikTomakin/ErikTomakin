@@ -713,7 +713,7 @@ function runRebuildDashboard() {
   dash.getRange("A8").insertCheckboxes().setValue(false)
     .setBackground(DARK_BLUE);
   dash.getRange("B8:D8").merge()
-    .setValue("✔  CHECK THIS BOX TO SUBMIT YOUR TRANSACTION")
+    .setValue("✔  CHECK BOX TO SUBMIT — Allow 2-3 seconds to process")
     .setBackground(DARK_BLUE).setFontColor(GOLD)
     .setFontWeight("bold").setFontSize(13)
     .setHorizontalAlignment("center").setVerticalAlignment("middle");
