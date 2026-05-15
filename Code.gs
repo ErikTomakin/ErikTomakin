@@ -51,6 +51,12 @@ function onEdit(e) {
   var row   = e.range.getRow();
   var col   = e.range.getColumn();
 
+  // Dashboard: mobile submit — checkbox in A11 triggers addTransaction
+  if (sheet.getName() === "Dashboard" && row === 11 && col === 1 && e.value === true) {
+    addTransaction();
+    return;
+  }
+
   // Transactions tab: warn before editing cols A-G unless Edit? checkbox (col H) is checked
   if (sheet.getName() === "Transactions" && col >= 1 && col <= 7 && row > 1) {
     var editCheckbox = sheet.getRange(row, 8).getValue();
@@ -307,7 +313,7 @@ function clearForm() {
   dash.getRange("B5").clearContent();
   dash.getRange("C5").clearContent();
   dash.getRange("D5").clearContent();
-  // Drawing button resets itself — nothing to clear here
+  dash.getRange("A11").setValue(false);
 }
 
 // ------------------------------------------------------------
@@ -674,9 +680,20 @@ function runRebuildDashboard() {
   dash.getRange("A10:D10").merge().setBackground(GOLD);
   dash.setRowHeight(10, 20);
 
-  // -- INCOME BY SOURCE TABLE (STARTS ROW 11) --
+  // Row 11: Mobile submit checkbox
+  dash.getRange("A11").insertCheckboxes().setValue(false).setBackground(LIGHT_GOLD);
+  dash.getRange("B11:D11").merge()
+    .setValue("Tap here to submit on mobile (check the box)")
+    .setBackground(LIGHT_GOLD).setFontColor("#888888").setFontSize(9)
+    .setHorizontalAlignment("left").setVerticalAlignment("middle");
+  dash.setRowHeight(11, 22);
 
-  var dashRow = 11;
+  // Row 12: Spacer
+  dash.setRowHeight(12, 16);
+
+  // -- INCOME BY SOURCE TABLE (STARTS ROW 13) --
+
+  var dashRow = 13;
 
   dash.getRange(dashRow, 1, 1, 4).merge()
     .setValue("INCOME BY SOURCE — YEAR TO DATE")
@@ -947,9 +964,18 @@ function runSetupInstructions() {
       body: "1. Go to the Dashboard tab.\n" +
             "2. Fill in: Date, Income Source, Type (Income or Expense), and Amount.\n" +
             "3. Fill in Category, Miles Driven (optional), Hours Worked (optional), and Notes.\n" +
-            "4. Click the silver SUBMIT button.\n" +
+            "4. Click the silver SUBMIT button (desktop) OR check the mobile box below it.\n" +
             "5. If you entered mileage, a second row will auto-post your mileage deduction.\n" +
             "6. You can also use Expense Tracker menu → Add Transaction."
+    },
+    {
+      heading: "USING ON MOBILE",
+      body: "The silver SUBMIT button only works on desktop (Google Sheets mobile app does not support script buttons).\n\n" +
+            "On mobile, use the small checkbox labeled 'Tap here to submit on mobile' just below the button area.\n\n" +
+            "To use desktop mode on your phone browser:\n" +
+            "• iPhone/iPad: Open in Chrome or Safari → tap the three dots → Request Desktop Site\n" +
+            "• Android: Open in Chrome → tap the three dots → check Desktop Site\n\n" +
+            "Desktop mode gives you the full Expense Tracker menu and the SUBMIT button."
     },
     {
       heading: "INCOME SOURCES vs EXPENSE CATEGORIES",
