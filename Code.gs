@@ -665,10 +665,13 @@ function runRebuildDashboard() {
     .setBackground(LIGHT_GOLD).setFontColor("#888888").setFontSize(9)
     .setHorizontalAlignment("center").setVerticalAlignment("middle");
   dash.setRowHeight(7, 16);
+  dash.getRange("A8:D8").merge().setBackground(GOLD);
   dash.setRowHeight(8, 50);
+  dash.getRange("A9:D9").merge().setBackground(GOLD);
   dash.setRowHeight(9, 10);
 
   // Row 10: Spacer
+  dash.getRange("A10:D10").merge().setBackground(GOLD);
   dash.setRowHeight(10, 20);
 
   // -- INCOME BY SOURCE TABLE (STARTS ROW 11) --
