@@ -1170,7 +1170,7 @@ function runSetupInstructions() {
   var instProt = inst.protect().setDescription("Instructions - Read Only");
   instProt.removeEditors(instProt.getEditors());
 
-  SpreadsheetApp.getUi().alert("Setup complete! Your expense tracker is ready.");
+  SpreadsheetApp.getUi().alert("Instructions tab ready! Run Step 7 — Setup Reports next.");
 }
 
 // ============================================================
