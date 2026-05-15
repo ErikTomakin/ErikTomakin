@@ -447,7 +447,7 @@ function runSetupTab() {
   setup.clearContents();
   setup.clearFormats();
   setup.clearNotes();
-  setup.clearDataValidations();
+  setup.getRange(1, 1, setup.getMaxRows(), setup.getMaxColumns()).clearDataValidations();
 
   // Remove any existing protections on this sheet
   var existingProts = setup.getProtections(SpreadsheetApp.ProtectionType.RANGE);
