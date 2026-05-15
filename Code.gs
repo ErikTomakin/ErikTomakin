@@ -231,6 +231,12 @@ function addTransaction() {
     return;
   }
 
+  // Flash button green to show script is running
+  ss.toast("Processing your transaction...", "Please wait", 10);
+  dash.getRange("A8:D9").setBackground("#2E7D32");
+  dash.getRange("B8:D8").setFontColor("white");
+  SpreadsheetApp.flush();
+
   var date     = dash.getRange("A3").getValue();
   var source   = dash.getRange("B3").getValue();
   var type     = dash.getRange("C3").getValue();
@@ -314,6 +320,8 @@ function clearForm() {
   dash.getRange("C5").clearContent();
   dash.getRange("D5").clearContent();
   dash.getRange("A8").setValue(false);
+  dash.getRange("A7:D9").setBackground(DARK_BLUE);
+  dash.getRange("B8:D8").setFontColor(GOLD);
 }
 
 // ------------------------------------------------------------
