@@ -146,8 +146,8 @@ function getIncomeSources(ss) {
     var cell = String(data[i][0]).trim();
     if (cell === "INCOME SOURCES") { inSection = true; continue; }
     if (inSection) {
-      if (cell === "" || cell.toUpperCase() === cell && cell !== "") break;
-      if (cell) sources.push(cell);
+      if (cell !== "" && cell === cell.toUpperCase()) break; // hit next section header, stop
+      if (cell !== "") sources.push(cell);                  // skip blanks, collect valid entries
     }
   }
   return sources;
@@ -161,10 +161,10 @@ function getCategories(ss) {
   var inSection = false;
   for (var i = 0; i < data.length; i++) {
     var cell = String(data[i][0]).trim();
-    if (cell === "EXPENSE CATEGORIES") { inSection = true; continue; }
+    if (cell === "INCOME & EXPENSE CATEGORIES") { inSection = true; continue; }
     if (inSection) {
-      if (cell === "" || (cell === cell.toUpperCase() && cell !== "" && cats.length > 0)) break;
-      if (cell) cats.push(cell);
+      if (cell !== "" && cell === cell.toUpperCase()) break; // hit next section header, stop
+      if (cell !== "") cats.push(cell);                      // skip blanks, collect valid entries
     }
   }
   return cats;
