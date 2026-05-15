@@ -423,9 +423,10 @@ function runSetupTransactions() {
   tx.setColumnWidth(7, 220);
   tx.setColumnWidth(8, 60);
 
-  // Format date and currency
+  // Format date, currency, and hours
   tx.getRange(2, 1, 999, 1).setNumberFormat("MM/dd/yyyy");
   tx.getRange(2, 4, 999, 1).setNumberFormat("$#,##0.00");
+  tx.getRange(2, 6, 999, 1).setNumberFormat("0.00");
 
   // Wrap text in Notes column (G)
   tx.getRange(2, 7, 999, 1).setWrap(true);
