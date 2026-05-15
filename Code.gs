@@ -512,6 +512,12 @@ function runSetupTransactions() {
   if (maxCols > 8) tx.hideColumns(9, maxCols - 8);
 
   tx.setFrozenRows(1);
+
+  // Apply filter arrows to header row (A–H) so Date, Source, Type, Category are sortable/filterable
+  var existingFilter = tx.getFilter();
+  if (existingFilter) existingFilter.remove();
+  tx.getRange(1, 1, 1, 8).createFilter();
+
   SpreadsheetApp.getUi().alert("Transactions tab ready! Run Step 3 next.");
 }
 
