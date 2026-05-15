@@ -622,6 +622,7 @@ function runSetupTab() {
     ["Base",                  "Income"],
     ["Bonus",                 "Income"],
     ["Tips",                  "Income"],
+    ["Sales",                 "Income"],
     ["Other Income",          "Income"],
     ["Mileage Deduction",     "Expense"],
     ["Fuel",                  "Expense"],
