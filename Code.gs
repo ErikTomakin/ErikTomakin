@@ -39,7 +39,7 @@ function onOpen() {
     .addItem("5 — Setup AI Prompts",    "runSetupPrompts")
     .addItem("6 — Setup Instructions",  "runSetupInstructions")
     .addItem("7 — Setup Reports",       "runSetupReports")
-    .addItem("8 — Quick Entry Tab",     "runSetupQuickEntry")
+    .addItem("8 — Mobile Entry Tab",    "runSetupMobileEntry")
     .addSeparator()
     .addItem("Refresh Dropdowns",       "refreshDropdowns")
     .addItem("Clear All Transactions",  "clearAllTransactions")
@@ -60,7 +60,7 @@ function onEdit(e) {
   }
 
   // Quick Entry: checkbox in A13 triggers addTransactionFromEntry_
-  if (sheet.getName() === "Quick Entry" && row === 13 && col === 1 && e.value === true) {
+  if (sheet.getName() === "Mobile Entry" && row === 13 && col === 1 && e.value === true) {
     addTransactionFromEntry_();
     return;
   }
@@ -208,7 +208,7 @@ function applyDropdownValidations_(ss, sources, cats) {
   dash.getRange("A5").setDataValidation(catRule);
 
   // Quick Entry tab dropdowns (B4 = Source, B5 = Type, B7 = Category)
-  var entry = ss.getSheetByName("Quick Entry");
+  var entry = ss.getSheetByName("Mobile Entry");
   if (entry) {
     entry.getRange("B4").setDataValidation(srcRule);
     entry.getRange("B5").setDataValidation(typeRule);
@@ -448,7 +448,7 @@ function clearAllTransactions() {
 
 function addTransactionFromEntry_() {
   var ss    = SpreadsheetApp.getActiveSpreadsheet();
-  var entry = ss.getSheetByName("Quick Entry");
+  var entry = ss.getSheetByName("Mobile Entry");
   var tx    = ss.getSheetByName("Transactions");
   if (!entry || !tx) {
     SpreadsheetApp.getUi().alert("Required tabs not found.");
@@ -513,7 +513,7 @@ function addTransactionFromEntry_() {
 
 function clearEntryForm_() {
   var ss    = SpreadsheetApp.getActiveSpreadsheet();
-  var entry = ss.getSheetByName("Quick Entry");
+  var entry = ss.getSheetByName("Mobile Entry");
   if (!entry) return;
   entry.getRange("B3").setValue(new Date());
   entry.getRange("B4").clearContent();
@@ -540,7 +540,7 @@ function clearEntryForm_() {
 
 function runCreateSheets() {
   var ss       = SpreadsheetApp.getActiveSpreadsheet();
-  var tabNames = ["Dashboard", "Quick Entry", "Transactions", "Setup", "AI Prompts", "Instructions", "Reports"];
+  var tabNames = ["Dashboard", "Mobile Entry", "Transactions", "Setup", "AI Prompts", "Instructions", "Reports"];
   var colors   = [GOLD, DARK_BLUE, GOLD, DARK_BLUE, GOLD, DARK_BLUE, GOLD];
 
   // Remove legacy tabs
@@ -1553,12 +1553,12 @@ function runSetupReports() {
 
 
 // ============================================================
-// START: SETUP STEP 8 — QUICK ENTRY TAB
+// START: SETUP STEP 8 — MOBILE ENTRY TAB
 // ============================================================
 
-function runSetupQuickEntry() {
+function runSetupMobileEntry() {
   var ss    = SpreadsheetApp.getActiveSpreadsheet();
-  var entry = ss.getSheetByName("Quick Entry");
+  var entry = ss.getSheetByName("Mobile Entry");
   if (!entry) { SpreadsheetApp.getUi().alert("Run Step 1 first."); return; }
 
   entry.clearContents();
@@ -1683,5 +1683,5 @@ function runSetupQuickEntry() {
 }
 
 // ============================================================
-// END: SETUP STEP 8 — QUICK ENTRY TAB
+// END: SETUP STEP 8 — MOBILE ENTRY TAB
 // ============================================================
