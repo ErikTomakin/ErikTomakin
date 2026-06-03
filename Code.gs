@@ -39,6 +39,7 @@ function onOpen() {
     .addItem("5 — Setup AI Prompts",    "runSetupPrompts")
     .addItem("6 — Setup Instructions",  "runSetupInstructions")
     .addItem("7 — Setup Reports",       "runSetupReports")
+    .addItem("8 — Quick Entry Tab",     "runSetupQuickEntry")
     .addSeparator()
     .addItem("Refresh Dropdowns",       "refreshDropdowns")
     .addItem("Clear All Transactions",  "clearAllTransactions")
@@ -55,6 +56,12 @@ function onEdit(e) {
   // Dashboard: checkbox in A8 triggers addTransaction
   if (sheet.getName() === "Dashboard" && row === 8 && col === 1 && e.value === true) {
     addTransaction();
+    return;
+  }
+
+  // Quick Entry: checkbox in A13 triggers addTransactionFromEntry_
+  if (sheet.getName() === "Quick Entry" && row === 13 && col === 1 && e.value === true) {
+    addTransactionFromEntry_();
     return;
   }
 
@@ -199,6 +206,14 @@ function applyDropdownValidations_(ss, sources, cats) {
   dash.getRange("B3").setDataValidation(srcRule);
   dash.getRange("C3").setDataValidation(typeRule);
   dash.getRange("A5").setDataValidation(catRule);
+
+  // Quick Entry tab dropdowns (B4 = Source, B5 = Type, B7 = Category)
+  var entry = ss.getSheetByName("Quick Entry");
+  if (entry) {
+    entry.getRange("B4").setDataValidation(srcRule);
+    entry.getRange("B5").setDataValidation(typeRule);
+    entry.getRange("B7").setDataValidation(catRule);
+  }
 }
 
 // Private: surgically rebuilds the Income by Source rows on the dashboard
@@ -429,6 +444,91 @@ function clearAllTransactions() {
   ui.alert("All transactions cleared.");
 }
 
+// ------------------------------------------------------------
+
+function addTransactionFromEntry_() {
+  var ss    = SpreadsheetApp.getActiveSpreadsheet();
+  var entry = ss.getSheetByName("Quick Entry");
+  var tx    = ss.getSheetByName("Transactions");
+  if (!entry || !tx) {
+    SpreadsheetApp.getUi().alert("Required tabs not found.");
+    return;
+  }
+
+  ss.toast("Processing your transaction...", "Please wait", 10);
+  entry.getRange("A12:C14").setBackground("#2E7D32");
+  entry.getRange("B13:C13").setFontColor("white");
+  SpreadsheetApp.flush();
+
+  var date     = entry.getRange("B3").getValue();
+  var source   = entry.getRange("B4").getValue();
+  var type     = entry.getRange("B5").getValue();
+  var amount   = entry.getRange("B6").getValue();
+  var category = entry.getRange("B7").getValue();
+  var miles    = entry.getRange("B8").getValue();
+  var hours    = entry.getRange("B9").getValue();
+  var notes    = entry.getRange("B10").getValue();
+
+  if (!source || !type) {
+    SpreadsheetApp.getUi().alert("Please fill in at least Income Source and Type before submitting.");
+    clearEntryForm_();
+    return;
+  }
+  if (!amount && (!miles || miles <= 0)) {
+    SpreadsheetApp.getUi().alert("Please enter an Amount or Miles Driven — nothing to record.");
+    clearEntryForm_();
+    return;
+  }
+  if (!date) date = new Date();
+
+  if (amount) {
+    var nextRow = tx.getLastRow() + 1;
+    tx.getRange(nextRow, 1, 1, 7).setValues([[date, source, type, amount, category, hours, notes]]);
+    tx.getRange(nextRow, 8).insertCheckboxes();
+    var prot1 = tx.getRange(nextRow, 1, 1, 7).protect().setDescription("tx_row_" + nextRow);
+    prot1.removeEditors(prot1.getEditors());
+  }
+
+  if (miles && miles > 0) {
+    var rate = getMileageRate(ss);
+    if (rate === null) {
+      SpreadsheetApp.getUi().alert("WARNING: Could not find IRS mileage rate in Setup tab.\nMileage deduction was NOT recorded.");
+    } else {
+      var deduction = miles * rate;
+      var mileRow   = tx.getLastRow() + 1;
+      tx.getRange(mileRow, 1, 1, 7).setValues([
+        [date, source, "Expense", -deduction, "Mileage Deduction", "", miles + " miles @ $" + rate]
+      ]);
+      tx.getRange(mileRow, 8).insertCheckboxes();
+      var prot2 = tx.getRange(mileRow, 1, 1, 7).protect().setDescription("tx_row_" + mileRow);
+      prot2.removeEditors(prot2.getEditors());
+    }
+  }
+
+  clearEntryForm_();
+  SpreadsheetApp.getUi().alert("Transaction added!");
+}
+
+// ------------------------------------------------------------
+
+function clearEntryForm_() {
+  var ss    = SpreadsheetApp.getActiveSpreadsheet();
+  var entry = ss.getSheetByName("Quick Entry");
+  if (!entry) return;
+  entry.getRange("B3").setValue(new Date());
+  entry.getRange("B4").clearContent();
+  entry.getRange("B5").clearContent();
+  entry.getRange("B6").clearContent();
+  entry.getRange("B7").clearContent();
+  entry.getRange("B8").clearContent();
+  entry.getRange("B9").clearContent();
+  entry.getRange("B10").clearContent();
+  entry.getRange("A13").setValue(false);
+  entry.getRange("A12:C14").setBackground(DARK_BLUE);
+  entry.getRange("B13:C13").setFontColor(GOLD);
+  SpreadsheetApp.flush();
+}
+
 // ============================================================
 // END: TRANSACTION LOGIC — addTransaction / getMileageRate / clearForm / clearAllTransactions
 // ============================================================
@@ -440,8 +540,8 @@ function clearAllTransactions() {
 
 function runCreateSheets() {
   var ss       = SpreadsheetApp.getActiveSpreadsheet();
-  var tabNames = ["Dashboard", "Transactions", "Setup", "AI Prompts", "Instructions", "Reports"];
-  var colors   = [GOLD, DARK_BLUE, GOLD, DARK_BLUE, GOLD, DARK_BLUE];
+  var tabNames = ["Dashboard", "Quick Entry", "Transactions", "Setup", "AI Prompts", "Instructions", "Reports"];
+  var colors   = [GOLD, DARK_BLUE, GOLD, DARK_BLUE, GOLD, DARK_BLUE, GOLD];
 
   // Remove legacy tabs
   ["Sources", "Expenses"].forEach(function(name) {
@@ -1449,4 +1549,139 @@ function runSetupReports() {
 
 // ============================================================
 // END: SETUP STEP 7 — REPORTS TAB
+// ============================================================
+
+
+// ============================================================
+// START: SETUP STEP 8 — QUICK ENTRY TAB
+// ============================================================
+
+function runSetupQuickEntry() {
+  var ss    = SpreadsheetApp.getActiveSpreadsheet();
+  var entry = ss.getSheetByName("Quick Entry");
+  if (!entry) { SpreadsheetApp.getUi().alert("Run Step 1 first."); return; }
+
+  entry.clearContents();
+  entry.clearFormats();
+  entry.clearNotes();
+  entry.getRange(1, 1, entry.getMaxRows(), entry.getMaxColumns()).clearDataValidations();
+
+  var existingProts = entry.getProtections(SpreadsheetApp.ProtectionType.RANGE);
+  for (var p = 0; p < existingProts.length; p++) existingProts[p].remove();
+
+  var row = 1;
+
+  // -- HEADER --
+  entry.getRange(row, 1, 1, 3).merge()
+    .setValue("QUICK ENTRY FORM")
+    .setBackground(DARK_BLUE).setFontColor("white")
+    .setFontWeight("bold").setFontSize(16)
+    .setHorizontalAlignment("center");
+  entry.setRowHeight(row, 50);
+  row++;
+
+  // -- SUBTITLE --
+  entry.getRange(row, 1, 1, 3).merge()
+    .setValue("Fill each field and press Enter to move to the next.  Fields marked * are required.")
+    .setBackground(LIGHT_GOLD).setFontColor("#666666").setFontSize(9).setFontStyle("italic")
+    .setHorizontalAlignment("center").setVerticalAlignment("middle");
+  entry.setRowHeight(row, 22);
+  row++;
+
+  // -- INPUT FIELDS --
+  // row 3 = Date, 4 = Source, 5 = Type, 6 = Amount, 7 = Category, 8 = Miles, 9 = Hours, 10 = Notes
+  var fields = [
+    { label: "Date",          hint: "Leave blank to default to today",           required: false },
+    { label: "Income Source", hint: "Required — select your platform or source", required: true  },
+    { label: "Type",          hint: "Required — Income or Expense",              required: true  },
+    { label: "Amount",        hint: "Dollar amount (required unless mileage only)",required: false },
+    { label: "Category",      hint: "Select the income or expense category",     required: false },
+    { label: "Miles Driven",  hint: "Optional — IRS deduction auto-calculates",  required: false },
+    { label: "Hours Worked",  hint: "Optional — for tracking time",              required: false },
+    { label: "Notes",         hint: "Optional — any extra detail",               required: false }
+  ];
+
+  fields.forEach(function(field, idx) {
+    var bg = idx % 2 === 0 ? LIGHT_BLUE : "white";
+    entry.setRowHeight(row, 36);
+
+    entry.getRange(row, 1)
+      .setValue(field.required ? field.label + "  *" : field.label)
+      .setBackground(bg).setFontWeight("bold").setFontSize(11)
+      .setHorizontalAlignment("right").setVerticalAlignment("middle");
+
+    entry.getRange(row, 2)
+      .setBackground("white")
+      .setBorder(true, true, true, true, false, false)
+      .setVerticalAlignment("middle").setFontSize(11);
+
+    entry.getRange(row, 3)
+      .setValue(field.hint)
+      .setBackground(bg).setFontColor("#888888").setFontSize(9).setFontStyle("italic")
+      .setVerticalAlignment("middle");
+
+    row++;
+  });
+
+  // Number formats for input column
+  entry.getRange("B3").setValue(new Date()).setNumberFormat("MM/dd/yyyy");
+  entry.getRange("B6").setNumberFormat("$#,##0.00");
+  entry.getRange("B8").setNumberFormat("0.0");
+  entry.getRange("B9").setNumberFormat("0.00");
+  entry.getRange("B10").setWrap(true);
+
+  // Dropdowns
+  var sources = getIncomeSources(ss);
+  var cats    = getCategories(ss);
+  var types   = ["Income", "Expense"];
+  if (sources.length === 0) sources = ["DoorDash", "Uber", "Freelance", "Notary", "Other"];
+  if (cats.length === 0)    cats    = ["Delivery Income", "Fuel", "Other Expense"];
+
+  entry.getRange("B4")
+    .setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(sources, true).setAllowInvalid(false).build());
+  entry.getRange("B5")
+    .setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(types, true).setAllowInvalid(false).build());
+  entry.getRange("B7")
+    .setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(cats, true).setAllowInvalid(false).build());
+
+  // -- SUBMIT BUTTON (rows 11 = spacer, 12 = top border, 13 = button, 14 = bottom border) --
+  row++; // row 11 spacer
+  entry.setRowHeight(row, 12);
+  row++;
+
+  // Row 12: top border
+  entry.getRange(row, 1, 1, 3).merge().setBackground(DARK_BLUE);
+  entry.setRowHeight(row, 6);
+  row++;
+
+  // Row 13: submit checkbox + label
+  entry.getRange(row, 1).insertCheckboxes().setValue(false).setBackground(DARK_BLUE);
+  entry.getRange(row, 2, 1, 2).merge()
+    .setValue("CHECK THE BOX TO SUBMIT  ✔  (Allow 2-3 seconds)")
+    .setBackground(DARK_BLUE).setFontColor(GOLD)
+    .setFontWeight("bold").setFontSize(13)
+    .setHorizontalAlignment("center").setVerticalAlignment("middle");
+  entry.setRowHeight(row, 50);
+  row++;
+
+  // Row 14: bottom border
+  entry.getRange(row, 1, 1, 3).merge().setBackground(DARK_BLUE);
+  entry.setRowHeight(row, 6);
+
+  // -- COLUMN WIDTHS --
+  entry.setColumnWidth(1, 160);
+  entry.setColumnWidth(2, 200);
+  entry.setColumnWidth(3, 280);
+
+  // Hide columns beyond C
+  var maxCols = entry.getMaxColumns();
+  if (maxCols > 3) entry.hideColumns(4, maxCols - 3);
+
+  entry.setFrozenRows(1);
+
+  SpreadsheetApp.getUi().alert("Quick Entry tab ready!\n\nPress Enter after each field to move down. Check the box at the bottom to submit.");
+}
+
+// ============================================================
+// END: SETUP STEP 8 — QUICK ENTRY TAB
 // ============================================================
