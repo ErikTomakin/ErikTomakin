@@ -1204,8 +1204,8 @@ function runSetupInstructions() {
       body: "1. Go to the Dashboard tab.\n" +
             "2. Fill in: Date, Income Source, Type (Income or Expense), and Amount.\n" +
             "3. Optionally fill in Category, Miles Driven, Hours Worked, and Notes.\n" +
-            "4. Check the blue checkbox labeled CHECK THE BOX TO SUBMIT.\n" +
-            "5. Wait 2-3 seconds — the button flashes green while processing.\n" +
+            "4. Check the blue checkbox in the dark blue bar — it flashes green while processing.\n" +
+            "5. Wait 2-3 seconds for the transaction to post.\n" +
             "6. If you entered mileage, a second row auto-posts your IRS mileage deduction.\n" +
             "7. You can also use Expense Tracker menu → Add Transaction."
     },
@@ -1215,7 +1215,7 @@ function runSetupInstructions() {
             "• All fields are stacked top to bottom in large 24pt text.\n" +
             "• Press Enter after each field to move to the next one.\n" +
             "• Required fields are marked with *\n" +
-            "• Check the box at the bottom to submit — same 2-3 second processing time.\n\n" +
+            "• Check the box at the bottom to post the entry — same 2-3 second processing time.\n\n" +
             "This tab works on the Google Sheets mobile app without needing desktop mode."
     },
     {
@@ -1256,7 +1256,7 @@ function runSetupInstructions() {
     {
       heading: "MENU SHORTCUTS",
       body: "Expense Tracker menu (top menu bar — not the file name):\n" +
-            "• Add Transaction — submits the Dashboard form entry\n" +
+            "• Add Transaction — posts the Dashboard form entry\n" +
             "• Refresh Dropdowns — updates all dropdowns and the dashboard source table\n" +
             "• Install Triggers (run once) — activates the submit checkboxes\n" +
             "• Clear All Transactions — wipes all rows (requires typing YES to confirm)\n" +
