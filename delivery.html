@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GSheet Shop – Expense Tracker Delivery</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', Arial, sans-serif;
+      background: #ffffff;
+      color: #1a1a1a;
+      width: 680px;
+      margin: 0 auto;
+      padding: 48px 40px 56px;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: #0055A2;
+      color: #ffffff;
+      border-radius: 10px;
+      padding: 32px 36px 28px;
+      margin-bottom: 28px;
+    }
+    .shop-name {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #E5A823;
+      margin-bottom: 8px;
+    }
+    .product-title {
+      font-size: 26px;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 10px;
+    }
+    .product-subtitle {
+      font-size: 14px;
+      color: #c5d8f0;
+      line-height: 1.5;
+    }
+
+    /* ── What you get ── */
+    .blurb {
+      background: #FDF3D7;
+      border-left: 5px solid #E5A823;
+      border-radius: 6px;
+      padding: 18px 22px;
+      font-size: 14px;
+      line-height: 1.65;
+      margin-bottom: 28px;
+      color: #3a3000;
+    }
+
+    /* ── Link box ── */
+    .link-section {
+      border: 2px solid #0055A2;
+      border-radius: 10px;
+      padding: 24px 28px;
+      margin-bottom: 28px;
+      text-align: center;
+    }
+    .link-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #0055A2;
+      margin-bottom: 10px;
+    }
+    .link-url {
+      display: inline-block;
+      background: #0055A2;
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 11px 22px;
+      border-radius: 6px;
+      text-decoration: none;
+      word-break: break-all;
+      line-height: 1.5;
+    }
+    .link-note {
+      font-size: 12px;
+      color: #666;
+      margin-top: 10px;
+    }
+
+    /* ── Steps ── */
+    .steps-heading {
+      font-size: 15px;
+      font-weight: 700;
+      color: #0055A2;
+      margin-bottom: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .steps {
+      counter-reset: step;
+      margin-bottom: 28px;
+    }
+    .step {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 14px;
+      align-items: flex-start;
+    }
+    .step-num {
+      counter-increment: step;
+      flex-shrink: 0;
+      width: 30px;
+      height: 30px;
+      background: #E5A823;
+      color: #fff;
+      font-weight: 800;
+      font-size: 15px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .step-body {
+      font-size: 14px;
+      line-height: 1.55;
+      padding-top: 5px;
+    }
+    .step-body strong { color: #0055A2; }
+
+    /* ── Tips box ── */
+    .tips {
+      background: #E8F0FA;
+      border-radius: 8px;
+      padding: 18px 22px;
+      margin-bottom: 28px;
+    }
+    .tips-heading {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #0055A2;
+      margin-bottom: 10px;
+    }
+    .tips ul {
+      padding-left: 18px;
+    }
+    .tips li {
+      font-size: 13px;
+      line-height: 1.6;
+      color: #1a1a1a;
+      margin-bottom: 4px;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      border-top: 2px solid #E5A823;
+      padding-top: 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: #888;
+    }
+    .footer-shop {
+      font-weight: 700;
+      color: #0055A2;
+      font-size: 13px;
+    }
+
+    /* ── Print ── */
+    @media print {
+      body { padding: 24px 32px; }
+      .link-url { color: #ffffff !important; background: #0055A2 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .header, .blurb, .tips, .step-num { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="shop-name">GSheet Shop</div>
+    <div class="product-title">AI-Ready Expense Tracker<br>for Gig Workers</div>
+    <div class="product-subtitle">Google Sheets template — works for DoorDash, Uber, Etsy sellers, freelancers &amp; mobile notaries</div>
+  </div>
+
+  <!-- Blurb -->
+  <div class="blurb">
+    Thank you for your purchase! This Google Sheets template lets you track income from multiple gig sources, log expenses, and get AI-powered tax insights — no subscriptions, no apps, no API required. Everything runs in your own Google Drive.
+  </div>
+
+  <!-- Link -->
+  <div class="link-section">
+    <div class="link-label">Your Template Link — Click to Get Your Copy</div>
+    <a class="link-url" href="https://docs.google.com/spreadsheets/d/1bGOgTyzEhpego99rrcK7Pl-NgQ0JwQveZZh_YipESfc/copy">
+      https://docs.google.com/spreadsheets/d/<br>1bGOgTyzEhpego99rrcK7Pl-NgQ0JwQveZZh_YipESfc/copy
+    </a>
+    <div class="link-note">Google will ask you to confirm — click <strong>Make a copy</strong>. The sheet saves to your Google Drive.</div>
+  </div>
+
+  <!-- Steps -->
+  <div class="steps-heading">How to Get Started</div>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body"><strong>Open the link above</strong> and click <em>Make a copy</em>. The template saves to your Google Drive.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body"><strong>Run Full Setup:</strong> Click the <em>Expense Tracker</em> menu → <em>★ Full Setup (one click)</em>. This builds all 7 tabs in about 30–60 seconds.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body"><strong>Add your income sources</strong> on the <em>Setup</em> tab — e.g. DoorDash, Uber, Etsy. Then set your expense categories.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body"><strong>Start tracking!</strong> Use the <em>Dashboard</em> or <em>Mobile Entry</em> tab to log transactions. The <em>Reports</em> tab updates automatically.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">5</div>
+      <div class="step-body"><strong>Use AI Prompts</strong> on the last tab — copy a prompt, paste it into ChatGPT or Claude with your data for instant tax insights. No API needed.</div>
+    </div>
+  </div>
+
+  <!-- Tips -->
+  <div class="tips">
+    <div class="tips-heading">Quick Tips</div>
+    <ul>
+      <li>The IRS mileage rate updates automatically — check the Setup tab each January.</li>
+      <li>Log expenses as negative amounts (e.g. <strong>−$45.00</strong> for fuel).</li>
+      <li>Use <em>Expense Tracker → Clear All Transactions</em> to reset at year-end.</li>
+      <li>Print the Instructions tab: File → Print → Portrait → Fit to page width.</li>
+    </ul>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div>
+      <div class="footer-shop">GSheet Shop</div>
+      <div>Questions? Message us on Etsy</div>
+    </div>
+    <div style="text-align:right;">
+      <div>© 2026 GSheet Shop</div>
+      <div>Personal use only · Not for resale</div>
+    </div>
+  </div>
+
+</body>
+</html>
