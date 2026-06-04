@@ -65,18 +65,20 @@ function installTriggers() {
 }
 
 function handleEdit(e) {
-  var sheet = e.range.getSheet();
-  var row   = e.range.getRow();
-  var col   = e.range.getColumn();
+  var sheet    = e.range.getSheet();
+  var row      = e.range.getRow();
+  var col      = e.range.getColumn();
+  var val      = e.value;
+  var isChecked = (val === true || val === "TRUE");
 
   // Dashboard: checkbox in A8 triggers addTransaction
-  if (sheet.getName() === "Dashboard" && row === 8 && col === 1 && e.value === true) {
+  if (sheet.getName() === "Dashboard" && row === 8 && col === 1 && isChecked) {
     addTransaction();
     return;
   }
 
   // Mobile Entry: checkbox in A14 triggers addTransactionFromEntry_
-  if (sheet.getName() === "Mobile Entry" && row === 14 && col === 1 && e.value === true) {
+  if (sheet.getName() === "Mobile Entry" && row === 14 && col === 1 && isChecked) {
     addTransactionFromEntry_();
     return;
   }
@@ -100,11 +102,10 @@ function handleEdit(e) {
 
   // Transactions tab: unchecking Edit? re-locks the row
   if (sheet.getName() === "Transactions" && col === 8 && row > 1) {
-    if (e.value !== true) {
+    if (!isChecked) {
       var prot = sheet.getRange(row, 1, 1, 7).protect().setDescription("tx_row_" + row);
       prot.removeEditors(prot.getEditors());
     } else {
-      // Checked — remove any existing protection on this row
       var protections = sheet.getProtections(SpreadsheetApp.ProtectionType.RANGE);
       for (var i = 0; i < protections.length; i++) {
         if (protections[i].getDescription() === "tx_row_" + row) {
