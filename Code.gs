@@ -1250,6 +1250,9 @@ function runSetupInstructions(silent) {
   inst.clearContents();
   inst.clearFormats();
 
+  // Unhide all rows in case a previous setup hid the warning body row
+  inst.showRows(1, inst.getMaxRows());
+
   // Remove existing protections before re-applying
   var existingProts = inst.getProtections(SpreadsheetApp.ProtectionType.SHEET);
   for (var p = 0; p < existingProts.length; p++) existingProts[p].remove();
