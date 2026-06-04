@@ -296,12 +296,12 @@ function applyDropdownValidations_(ss, sources, cats) {
   dash.getRange("C3").setDataValidation(typeRule);
   dash.getRange("A5").setDataValidation(catRule);
 
-  // Quick Entry tab dropdowns (B4 = Source, B5 = Type, B7 = Category)
+  // Quick Entry tab dropdowns (B5 = Source, B6 = Type, B8 = Category)
   var entry = ss.getSheetByName("Mobile Entry");
   if (entry) {
-    entry.getRange("B4").setDataValidation(srcRule);
-    entry.getRange("B5").setDataValidation(typeRule);
-    entry.getRange("B7").setDataValidation(catRule);
+    entry.getRange("B5").setDataValidation(srcRule);
+    entry.getRange("B6").setDataValidation(typeRule);
+    entry.getRange("B8").setDataValidation(catRule);
   }
 }
 
@@ -550,11 +550,11 @@ function addTransactionFromEntry_() {
   SpreadsheetApp.flush();
 
   var date     = entry.getRange("B3").getValue();
-  var source   = entry.getRange("B4").getValue();
-  var type     = entry.getRange("B5").getValue();
-  var amount   = entry.getRange("B6").getValue();
-  var category = entry.getRange("B7").getValue();
-  var miles    = entry.getRange("B8").getValue();
+  var amount   = entry.getRange("B4").getValue();
+  var source   = entry.getRange("B5").getValue();
+  var type     = entry.getRange("B6").getValue();
+  var miles    = entry.getRange("B7").getValue();
+  var category = entry.getRange("B8").getValue();
   var hours    = entry.getRange("B9").getValue();
   var notes    = entry.getRange("B10").getValue();
 
@@ -604,14 +604,14 @@ function clearEntryForm_() {
   var ss    = SpreadsheetApp.getActiveSpreadsheet();
   var entry = ss.getSheetByName("Mobile Entry");
   if (!entry) return;
-  entry.getRange("B3").setValue(new Date());
-  entry.getRange("B4").clearContent();
-  entry.getRange("B5").clearContent();
-  entry.getRange("B6").clearContent();
-  entry.getRange("B7").clearContent();
-  entry.getRange("B8").clearContent();
-  entry.getRange("B9").clearContent();
-  entry.getRange("B10").clearContent();
+  entry.getRange("B3").setValue(new Date()); // date
+  entry.getRange("B4").clearContent();       // amount
+  entry.getRange("B5").clearContent();       // source
+  entry.getRange("B6").setValue("Income");   // type — reset to default
+  entry.getRange("B7").clearContent();       // miles
+  entry.getRange("B8").clearContent();       // category
+  entry.getRange("B9").clearContent();       // hours
+  entry.getRange("B10").clearContent();      // notes
   entry.getRange("A14").setValue(false);
   entry.getRange("A13:C15").setBackground(DARK_BLUE);
   entry.getRange("B14:C14").setFontColor(GOLD);
@@ -1386,6 +1386,7 @@ function runSetupInstructions(silent) {
 
   inst.getRange(row, 1).merge()
     .setValue(
+      "⚠️  This app can only be activated on a desktop or laptop — it will not work from a phone.\n\n" +
       "WAIT for the \"Expense Tracker\" menu to appear in the top menu bar.\n\n" +
       "When it does, click it and choose:  ★ Full Setup (one click)\n\n" +
       "Setup takes about 30–60 seconds. Do not close the sheet while it runs."
@@ -1748,16 +1749,16 @@ function runSetupMobileEntry(silent) {
   row++;
 
   // -- INPUT FIELDS --
-  // row 3 = Date, 4 = Source, 5 = Type, 6 = Amount, 7 = Category, 8 = Miles, 9 = Hours, 10 = Notes
+  // row 3 = Date, 4 = Amount, 5 = Source, 6 = Type, 7 = Miles, 8 = Category, 9 = Hours, 10 = Notes
   var fields = [
-    { label: "Date",          hint: "Leave blank to default to today",            required: false },
-    { label: "Income Source", hint: "Required — select your platform or source",  required: true  },
-    { label: "Type",          hint: "Required — Income or Expense",               required: true  },
-    { label: "Amount",        hint: "Dollar amount (required unless mileage only)",required: false },
-    { label: "Category",      hint: "Select the income or expense category",      required: false },
-    { label: "Miles Driven",  hint: "Optional — IRS deduction auto-calculates",   required: false },
-    { label: "Hours Worked",  hint: "Optional — for tracking time",               required: false },
-    { label: "Notes",         hint: "Optional — any extra detail",                required: false }
+    { label: "Date",          hint: "Leave blank to default to today",             required: false },
+    { label: "Amount",        hint: "Dollar amount (required unless mileage only)", required: false },
+    { label: "Income Source", hint: "Required — select your platform or source",   required: true  },
+    { label: "Type",          hint: "Income or Expense — defaults to Income",      required: true  },
+    { label: "Miles Driven",  hint: "Optional — IRS deduction auto-calculates",    required: false },
+    { label: "Category",      hint: "Select the income or expense category",       required: false },
+    { label: "Hours Worked",  hint: "Optional — for tracking time",                required: false },
+    { label: "Notes",         hint: "Optional — any extra detail",                 required: false }
   ];
 
   fields.forEach(function(field, idx) {
@@ -1766,8 +1767,8 @@ function runSetupMobileEntry(silent) {
 
     entry.getRange(row, 1)
       .setValue(field.required ? field.label + "  *" : field.label)
-      .setBackground(bg).setFontWeight("bold").setFontSize(24)
-      .setHorizontalAlignment("right").setVerticalAlignment("middle");
+      .setBackground(bg).setFontWeight("bold").setFontSize(12)
+      .setHorizontalAlignment("right").setVerticalAlignment("middle").setWrap(true);
 
     entry.getRange(row, 2)
       .setBackground("white")
@@ -1784,8 +1785,8 @@ function runSetupMobileEntry(silent) {
 
   // Number formats for input column
   entry.getRange("B3").setValue(new Date()).setNumberFormat("MM/dd/yyyy");
-  entry.getRange("B6").setNumberFormat("$#,##0.00");
-  entry.getRange("B8").setNumberFormat("0.0");
+  entry.getRange("B4").setNumberFormat("$#,##0.00");
+  entry.getRange("B7").setNumberFormat("0.0");
   entry.getRange("B9").setNumberFormat("0.00");
   entry.getRange("B10").setWrap(true);
 
@@ -1796,11 +1797,12 @@ function runSetupMobileEntry(silent) {
   if (sources.length === 0) sources = ["DoorDash", "Uber", "Freelance", "Notary", "Other"];
   if (cats.length === 0)    cats    = ["Delivery Income", "Fuel", "Other Expense"];
 
-  entry.getRange("B4")
-    .setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(sources, true).setAllowInvalid(false).build());
   entry.getRange("B5")
+    .setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(sources, true).setAllowInvalid(false).build());
+  entry.getRange("B6")
     .setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(types, true).setAllowInvalid(false).build());
-  entry.getRange("B7")
+  entry.getRange("B6").setValue("Income");
+  entry.getRange("B8")
     .setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(cats, true).setAllowInvalid(false).build());
 
   // -- SUBMIT BUTTON (rows 11 = spacer, 12 = top border, 13 = button, 14 = bottom border) --
@@ -1828,9 +1830,9 @@ function runSetupMobileEntry(silent) {
   entry.setRowHeight(row, 6);
 
   // -- COLUMN WIDTHS --
-  entry.setColumnWidth(1, 220);
-  entry.setColumnWidth(2, 280);
-  entry.setColumnWidth(3, 300);
+  entry.setColumnWidth(1, 120);
+  entry.setColumnWidth(2, 300);
+  entry.setColumnWidth(3, 280);
 
   // Hide columns beyond C
   var maxCols = entry.getMaxColumns();
