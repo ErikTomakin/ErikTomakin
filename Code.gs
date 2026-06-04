@@ -103,8 +103,34 @@ function runFullSetup() {
   ss.toast("Installing triggers…", "⚙️ Almost done!", -1);
   installTriggers(true);
 
+  markSetupComplete();
+
   ss.toast("All 8 tabs ready! Go to the Setup tab to add your income sources.", "✅ Setup Complete!", 10);
   ui.alert("All done!\n\nAll 8 tabs are set up and triggers are installed.\n\nHead to the Setup tab to add your income sources, then start tracking!");
+}
+
+function markSetupComplete() {
+  var ss   = SpreadsheetApp.getActiveSpreadsheet();
+  var inst = ss.getSheetByName("Instructions");
+  if (!inst) return;
+
+  // Temporarily lift protection so we can edit
+  inst.getProtections(SpreadsheetApp.ProtectionType.SHEET).forEach(function(p) { p.remove(); });
+
+  // Row 4: replace red warning banner with green success banner
+  inst.getRange(4, 1).merge()
+    .setValue("✅  This app has been activated and is ready for use!")
+    .setBackground("#1E8449").setFontColor("white")
+    .setFontWeight("bold").setFontSize(13)
+    .setHorizontalAlignment("center").setVerticalAlignment("middle");
+  inst.setRowHeight(4, 36);
+
+  // Row 5: hide the warning body — no longer needed
+  inst.hideRows(5);
+
+  // Re-apply read-only protection
+  var prot = inst.protect().setDescription("Instructions - Read Only");
+  prot.removeEditors(prot.getEditors());
 }
 
 function handleEdit(e) {
@@ -1345,7 +1371,7 @@ function runSetupInstructions(silent) {
   // -- INSTALL WARNING --
   row++;
   inst.getRange(row, 1).merge()
-    .setValue("⚠️  IMPORTANT — THIS APP NEEDS TO BE INSTALLED")
+    .setValue("⚠️  IMPORTANT — THIS APP NEEDS TO BE ACTIVATED")
     .setBackground("#C0392B").setFontColor("white")
     .setFontWeight("bold").setFontSize(13)
     .setHorizontalAlignment("center").setVerticalAlignment("middle");
