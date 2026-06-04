@@ -1342,6 +1342,29 @@ function runSetupInstructions(silent) {
   inst.setRowHeight(row, 44);
   row++;
 
+  // -- INSTALL WARNING --
+  row++;
+  inst.getRange(row, 1).merge()
+    .setValue("⚠️  IMPORTANT — THIS APP NEEDS TO BE INSTALLED")
+    .setBackground("#C0392B").setFontColor("white")
+    .setFontWeight("bold").setFontSize(13)
+    .setHorizontalAlignment("center").setVerticalAlignment("middle");
+  inst.setRowHeight(row, 36);
+  row++;
+
+  inst.getRange(row, 1).merge()
+    .setValue(
+      "WAIT for the \"Expense Tracker\" menu to appear in the top menu bar.\n\n" +
+      "When it does, click it and choose:  ★ Full Setup (one click)\n\n" +
+      "Setup takes about 30–60 seconds. Do not close the sheet while it runs."
+    )
+    .setBackground("#FADBD8").setFontColor("#7B241C")
+    .setFontSize(12).setFontWeight("bold")
+    .setWrap(true).setVerticalAlignment("top")
+    .setHorizontalAlignment("left");
+  inst.setRowHeight(row, 90);
+  row++;
+
   sections.forEach(function(sec) {
     row++;
     inst.getRange(row, 1).merge()
