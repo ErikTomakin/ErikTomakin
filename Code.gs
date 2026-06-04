@@ -1174,6 +1174,10 @@ function runSetupInstructions() {
   inst.clearContents();
   inst.clearFormats();
 
+  // Remove existing protections before re-applying
+  var existingProts = inst.getProtections(SpreadsheetApp.ProtectionType.SHEET);
+  for (var p = 0; p < existingProts.length; p++) existingProts[p].remove();
+
   var row = 1;
 
   // -- HEADER --
@@ -1192,49 +1196,54 @@ function runSetupInstructions() {
       body: "1. Go to the Setup tab and confirm your income sources and expense categories.\n" +
             "2. Update the IRS mileage rate each January (irs.gov). The Setup tab turns RED as a reminder.\n" +
             "3. Add your recurring expenses in the Recurring Expenses section of the Setup tab.\n" +
-            "4. Run 'Refresh Dropdowns' from the Expense Tracker menu after any changes to Setup."
+            "4. Run Expense Tracker → Refresh Dropdowns after any changes to Setup.\n" +
+            "5. Run Expense Tracker → Install Triggers (run once) to activate the submit checkboxes."
     },
     {
-      heading: "ADDING THE SUBMIT BUTTON (one-time setup)",
-      body: "1. On the Dashboard tab, click Insert → Drawing.\n" +
-            "2. Click the Shapes tool → Shapes → Rounded Rectangle.\n" +
-            "3. Draw a wide pill shape. Fill color: silver (#D4D4D4). Border: none or dark blue.\n" +
-            "4. Double-click the shape and type: SUBMIT\n" +
-            "5. Make the text bold, dark blue (#0055A2), font size 16.\n" +
-            "6. Click Save & Close.\n" +
-            "7. Right-click the floating button → Assign Script → type: addTransaction → OK.\n" +
-            "8. Drag the button to sit over rows 8–9 on the Dashboard."
-    },
-    {
-      heading: "ADDING TRANSACTIONS",
+      heading: "ADDING TRANSACTIONS — DASHBOARD",
       body: "1. Go to the Dashboard tab.\n" +
             "2. Fill in: Date, Income Source, Type (Income or Expense), and Amount.\n" +
-            "3. Fill in Category, Miles Driven (optional), Hours Worked (optional), and Notes.\n" +
-            "4. Click the silver SUBMIT button (desktop) OR check the mobile box below it.\n" +
-            "5. If you entered mileage, a second row will auto-post your mileage deduction.\n" +
-            "6. You can also use Expense Tracker menu → Add Transaction."
+            "3. Optionally fill in Category, Miles Driven, Hours Worked, and Notes.\n" +
+            "4. Check the blue checkbox labeled CHECK THE BOX TO SUBMIT.\n" +
+            "5. Wait 2-3 seconds — the button flashes green while processing.\n" +
+            "6. If you entered mileage, a second row auto-posts your IRS mileage deduction.\n" +
+            "7. You can also use Expense Tracker menu → Add Transaction."
     },
     {
-      heading: "USING ON MOBILE",
-      body: "The silver SUBMIT button only works on desktop (Google Sheets mobile app does not support script buttons).\n\n" +
-            "On mobile, use the small checkbox labeled 'Tap here to submit on mobile' just below the button area.\n\n" +
-            "To use desktop mode on your phone browser:\n" +
-            "• iPhone/iPad: Open in Chrome or Safari → tap the three dots → Request Desktop Site\n" +
-            "• Android: Open in Chrome → tap the three dots → check Desktop Site\n\n" +
-            "Desktop mode gives you the full Expense Tracker menu and the SUBMIT button."
+      heading: "ADDING TRANSACTIONS — MOBILE ENTRY TAB",
+      body: "The Mobile Entry tab is designed for phone and tablet use.\n\n" +
+            "• All fields are stacked top to bottom in large 24pt text.\n" +
+            "• Press Enter after each field to move to the next one.\n" +
+            "• Required fields are marked with *\n" +
+            "• Check the box at the bottom to submit — same 2-3 second processing time.\n\n" +
+            "This tab works on the Google Sheets mobile app without needing desktop mode."
     },
     {
       heading: "INCOME SOURCES vs EXPENSE CATEGORIES",
       body: "• Income Sources = WHERE the money came from (DoorDash, Etsy, Upwork, etc.)\n" +
             "• Expense Categories = WHAT the money was spent on (Fuel, Phone Bill, etc.)\n" +
             "• Type 'Income' = money coming IN | Type 'Expense' = money going OUT\n" +
-            "• Mileage Deduction posts as a NEGATIVE expense automatically."
+            "• Mileage Deduction posts as a NEGATIVE expense automatically.\n\n" +
+            "To add, remove, or rename income sources:\n" +
+            "• Go to the Setup tab and edit the source names under INCOME SOURCES.\n" +
+            "• Run Expense Tracker → Refresh Dropdowns to update all menus."
+    },
+    {
+      heading: "REPORTS TAB",
+      body: "The Reports tab shows a live summary filtered by date range and income source.\n\n" +
+            "• Set Start Date and End Date to filter by any time period.\n" +
+            "• Choose a specific Income Source or leave it on All Sources.\n" +
+            "• Section 1: Income & Expenses by Source\n" +
+            "• Section 2: Expenses by Category\n" +
+            "• Section 3: Overall Summary with net profit and estimated 28% tax set-aside.\n\n" +
+            "All three sections update automatically when you change the filters."
     },
     {
       heading: "DASHBOARD SUMMARIES",
       body: "• BY SOURCE: Shows total income, expenses, and net per platform for the year.\n" +
             "• MONTHLY BREAKDOWN: Shows all 12 months of the current year.\n" +
-            "• These update automatically as you add transactions."
+            "• These update automatically as you add transactions.\n" +
+            "• After adding or removing income sources, run Refresh Dropdowns to update the source table."
     },
     {
       heading: "USING AI (NO API NEEDED)",
@@ -1246,19 +1255,21 @@ function runSetupInstructions() {
     },
     {
       heading: "MENU SHORTCUTS",
-      body: "Expense Tracker menu (top of screen):\n" +
-            "• Add Transaction — submits your form entry\n" +
-            "• Refresh Dropdowns — updates dropdowns after you edit Setup\n" +
-            "• Clear All Transactions — wipes all rows (requires YES confirmation)\n" +
-            "• Setup steps 1–6 — rebuilds individual tabs if needed"
+      body: "Expense Tracker menu (top menu bar — not the file name):\n" +
+            "• Add Transaction — submits the Dashboard form entry\n" +
+            "• Refresh Dropdowns — updates all dropdowns and the dashboard source table\n" +
+            "• Install Triggers (run once) — activates the submit checkboxes\n" +
+            "• Clear All Transactions — wipes all rows (requires typing YES to confirm)\n" +
+            "• Setup steps 1–8 — rebuilds individual tabs if needed"
     },
     {
       heading: "TIPS FOR GIG WORKERS",
       body: "• Log mileage the same day — it's easy to forget.\n" +
             "• Set aside 25-30% of net profit for quarterly taxes.\n" +
-            "• Check the AI Prompts tab before every quarterly tax deadline.\n" +
+            "• Check the Reports tab and AI Prompts tab before every quarterly tax deadline.\n" +
             "• Keep receipts for all Expense entries — photos in Google Drive work great.\n" +
-            "• Use 'Notary Work' or 'Freelance Income' for non-platform income."
+            "• Use 'Notary Work' or 'Freelance' as income sources for non-platform income.\n" +
+            "• The IRS mileage rate changes every January — update it in the Setup tab."
     }
   ];
 
