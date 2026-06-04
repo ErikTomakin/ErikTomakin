@@ -75,16 +75,35 @@ function runFullSetup() {
   );
   if (response !== ui.Button.OK) return;
 
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  ss.toast("Creating tabs…", "⚙️ Setting up (1 of 8)", -1);
   runCreateSheets(true);
+
+  ss.toast("Setting up Transactions tab…", "⚙️ Setting up (2 of 8)", -1);
   runSetupTransactions(true);
+
+  ss.toast("Setting up Setup tab…", "⚙️ Setting up (3 of 8)", -1);
   runSetupTab(true);
+
+  ss.toast("Building Dashboard…", "⚙️ Setting up (4 of 8)", -1);
   runRebuildDashboard(true);
+
+  ss.toast("Adding AI Prompts…", "⚙️ Setting up (5 of 8)", -1);
   runSetupPrompts(true);
+
+  ss.toast("Writing Instructions…", "⚙️ Setting up (6 of 8)", -1);
   runSetupInstructions(true);
+
+  ss.toast("Building Reports tab…", "⚙️ Setting up (7 of 8)", -1);
   runSetupReports(true);
+
+  ss.toast("Setting up Mobile Entry…", "⚙️ Setting up (8 of 8)", -1);
   runSetupMobileEntry(true);
+
+  ss.toast("Installing triggers…", "⚙️ Almost done!", -1);
   installTriggers(true);
 
+  ss.toast("All 8 tabs ready! Go to the Setup tab to add your income sources.", "✅ Setup Complete!", 10);
   ui.alert("All done!\n\nAll 8 tabs are set up and triggers are installed.\n\nHead to the Setup tab to add your income sources, then start tracking!");
 }
 
