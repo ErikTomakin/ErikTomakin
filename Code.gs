@@ -41,6 +41,7 @@ function onOpen() {
     .addItem("7 — Setup Reports",       "runSetupReports")
     .addItem("8 — Mobile Entry Tab",    "runSetupMobileEntry")
     .addSeparator()
+    .addItem("Install Triggers (run once)", "installTriggers")
     .addItem("Refresh Dropdowns",       "refreshDropdowns")
     .addItem("Clear All Transactions",  "clearAllTransactions")
     .addToUi();
@@ -48,7 +49,22 @@ function onOpen() {
   checkIRSRate();
 }
 
-function onEdit(e) {
+function installTriggers() {
+  // Remove any existing handleEdit installable triggers to avoid duplicates
+  ScriptApp.getProjectTriggers().forEach(function(t) {
+    if (t.getHandlerFunction() === "handleEdit") ScriptApp.deleteTrigger(t);
+  });
+
+  // Install a new authorized onEdit trigger
+  ScriptApp.newTrigger("handleEdit")
+    .forSpreadsheet(SpreadsheetApp.getActiveSpreadsheet())
+    .onEdit()
+    .create();
+
+  SpreadsheetApp.getUi().alert("Triggers installed!\n\nCheckboxes on Dashboard and Mobile Entry will now work.");
+}
+
+function handleEdit(e) {
   var sheet = e.range.getSheet();
   var row   = e.range.getRow();
   var col   = e.range.getColumn();
