@@ -1573,52 +1573,52 @@ function runSetupMobileEntry() {
 
   // -- HEADER --
   entry.getRange(row, 1, 1, 3).merge()
-    .setValue("QUICK ENTRY FORM")
+    .setValue("MOBILE ENTRY FORM")
     .setBackground(DARK_BLUE).setFontColor("white")
-    .setFontWeight("bold").setFontSize(16)
+    .setFontWeight("bold").setFontSize(28)
     .setHorizontalAlignment("center");
-  entry.setRowHeight(row, 50);
+  entry.setRowHeight(row, 70);
   row++;
 
   // -- SUBTITLE --
   entry.getRange(row, 1, 1, 3).merge()
     .setValue("Fill each field and press Enter to move to the next.  Fields marked * are required.")
-    .setBackground(LIGHT_GOLD).setFontColor("#666666").setFontSize(9).setFontStyle("italic")
+    .setBackground(LIGHT_GOLD).setFontColor("#666666").setFontSize(12).setFontStyle("italic")
     .setHorizontalAlignment("center").setVerticalAlignment("middle");
-  entry.setRowHeight(row, 22);
+  entry.setRowHeight(row, 30);
   row++;
 
   // -- INPUT FIELDS --
   // row 3 = Date, 4 = Source, 5 = Type, 6 = Amount, 7 = Category, 8 = Miles, 9 = Hours, 10 = Notes
   var fields = [
-    { label: "Date",          hint: "Leave blank to default to today",           required: false },
-    { label: "Income Source", hint: "Required — select your platform or source", required: true  },
-    { label: "Type",          hint: "Required — Income or Expense",              required: true  },
+    { label: "Date",          hint: "Leave blank to default to today",            required: false },
+    { label: "Income Source", hint: "Required — select your platform or source",  required: true  },
+    { label: "Type",          hint: "Required — Income or Expense",               required: true  },
     { label: "Amount",        hint: "Dollar amount (required unless mileage only)",required: false },
-    { label: "Category",      hint: "Select the income or expense category",     required: false },
-    { label: "Miles Driven",  hint: "Optional — IRS deduction auto-calculates",  required: false },
-    { label: "Hours Worked",  hint: "Optional — for tracking time",              required: false },
-    { label: "Notes",         hint: "Optional — any extra detail",               required: false }
+    { label: "Category",      hint: "Select the income or expense category",      required: false },
+    { label: "Miles Driven",  hint: "Optional — IRS deduction auto-calculates",   required: false },
+    { label: "Hours Worked",  hint: "Optional — for tracking time",               required: false },
+    { label: "Notes",         hint: "Optional — any extra detail",                required: false }
   ];
 
   fields.forEach(function(field, idx) {
     var bg = idx % 2 === 0 ? LIGHT_BLUE : "white";
-    entry.setRowHeight(row, 36);
+    entry.setRowHeight(row, 60);
 
     entry.getRange(row, 1)
       .setValue(field.required ? field.label + "  *" : field.label)
-      .setBackground(bg).setFontWeight("bold").setFontSize(11)
+      .setBackground(bg).setFontWeight("bold").setFontSize(24)
       .setHorizontalAlignment("right").setVerticalAlignment("middle");
 
     entry.getRange(row, 2)
       .setBackground("white")
       .setBorder(true, true, true, true, false, false)
-      .setVerticalAlignment("middle").setFontSize(11);
+      .setVerticalAlignment("middle").setFontSize(24);
 
     entry.getRange(row, 3)
       .setValue(field.hint)
-      .setBackground(bg).setFontColor("#888888").setFontSize(9).setFontStyle("italic")
-      .setVerticalAlignment("middle");
+      .setBackground(bg).setFontColor("#888888").setFontSize(11).setFontStyle("italic")
+      .setVerticalAlignment("middle").setWrap(true);
 
     row++;
   });
@@ -1659,9 +1659,9 @@ function runSetupMobileEntry() {
   entry.getRange(row, 2, 1, 2).merge()
     .setValue("CHECK THE BOX TO SUBMIT  ✔  (Allow 2-3 seconds)")
     .setBackground(DARK_BLUE).setFontColor(GOLD)
-    .setFontWeight("bold").setFontSize(13)
+    .setFontWeight("bold").setFontSize(20)
     .setHorizontalAlignment("center").setVerticalAlignment("middle");
-  entry.setRowHeight(row, 50);
+  entry.setRowHeight(row, 70);
   row++;
 
   // Row 14: bottom border
@@ -1669,9 +1669,9 @@ function runSetupMobileEntry() {
   entry.setRowHeight(row, 6);
 
   // -- COLUMN WIDTHS --
-  entry.setColumnWidth(1, 160);
-  entry.setColumnWidth(2, 200);
-  entry.setColumnWidth(3, 280);
+  entry.setColumnWidth(1, 220);
+  entry.setColumnWidth(2, 280);
+  entry.setColumnWidth(3, 300);
 
   // Hide columns beyond C
   var maxCols = entry.getMaxColumns();
