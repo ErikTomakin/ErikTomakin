@@ -1276,32 +1276,54 @@ function runSetupInstructions() {
     }
   ];
 
+  // Print tip row at very top
+  inst.getRange(1, 1).setValue("PRINT TIP: File → Print → Portrait → Fit to page width → Next → Print")
+    .setBackground("#F0F0F0").setFontColor("#888888").setFontSize(9).setFontStyle("italic")
+    .setHorizontalAlignment("center").setVerticalAlignment("middle").setWrap(true);
+  inst.setRowHeight(1, 18);
+  row = 2; // push all content down one row
+
+  // Re-write header at row 2
+  inst.getRange(row, 1).merge()
+    .setValue("HOW TO USE THIS EXPENSE TRACKER")
+    .setBackground(DARK_BLUE).setFontColor("white")
+    .setFontWeight("bold").setFontSize(16)
+    .setHorizontalAlignment("center");
+  inst.setRowHeight(row, 44);
+  row++;
+
   sections.forEach(function(sec) {
     row++;
-    inst.getRange(row, 1, 1, 2).merge()
+    inst.getRange(row, 1).merge()
       .setValue(sec.heading)
       .setBackground(GOLD).setFontColor(DARK_BLUE)
-      .setFontWeight("bold").setFontSize(12);
-    inst.setRowHeight(row, 32);
+      .setFontWeight("bold").setFontSize(11);
+    inst.setRowHeight(row, 28);
     row++;
 
-    inst.getRange(row, 1, 1, 2).merge()
+    inst.getRange(row, 1).merge()
       .setValue(sec.body)
-      .setBackground(LIGHT_BLUE).setFontSize(11)
+      .setBackground(LIGHT_BLUE).setFontSize(10)
       .setWrap(true).setVerticalAlignment("top");
     var lines = sec.body.split("\n").length;
-    inst.setRowHeight(row, Math.max(80, lines * 22));
+    inst.setRowHeight(row, Math.max(60, lines * 18));
     row++;
   });
 
-  inst.setColumnWidth(1, 700);
-  inst.setColumnWidth(2, 700);
+  // Single column at 680px — fits 8.5x11 portrait with normal margins
+  inst.setColumnWidth(1, 680);
+
+  // Hide all other columns
+  var maxCols = inst.getMaxColumns();
+  if (maxCols > 1) inst.hideColumns(2, maxCols - 1);
+
+  inst.setFrozenRows(1);
 
   // Lock the tab — read only
   var instProt = inst.protect().setDescription("Instructions - Read Only");
   instProt.removeEditors(instProt.getEditors());
 
-  SpreadsheetApp.getUi().alert("Instructions tab ready! Run Step 7 — Setup Reports next.");
+  SpreadsheetApp.getUi().alert("Instructions tab ready!\n\nTo print: File → Print → Portrait → Fit to page width → Print\n\nRun Step 7 — Setup Reports next.");
 }
 
 // ============================================================
