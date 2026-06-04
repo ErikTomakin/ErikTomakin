@@ -59,8 +59,8 @@ function onEdit(e) {
     return;
   }
 
-  // Quick Entry: checkbox in A13 triggers addTransactionFromEntry_
-  if (sheet.getName() === "Mobile Entry" && row === 13 && col === 1 && e.value === true) {
+  // Mobile Entry: checkbox in A14 triggers addTransactionFromEntry_
+  if (sheet.getName() === "Mobile Entry" && row === 14 && col === 1 && e.value === true) {
     addTransactionFromEntry_();
     return;
   }
@@ -456,8 +456,8 @@ function addTransactionFromEntry_() {
   }
 
   ss.toast("Processing your transaction...", "Please wait", 10);
-  entry.getRange("A12:C14").setBackground("#2E7D32");
-  entry.getRange("B13:C13").setFontColor("white");
+  entry.getRange("A13:C15").setBackground("#2E7D32");
+  entry.getRange("B14:C14").setFontColor("white");
   SpreadsheetApp.flush();
 
   var date     = entry.getRange("B3").getValue();
@@ -523,9 +523,9 @@ function clearEntryForm_() {
   entry.getRange("B8").clearContent();
   entry.getRange("B9").clearContent();
   entry.getRange("B10").clearContent();
-  entry.getRange("A13").setValue(false);
-  entry.getRange("A12:C14").setBackground(DARK_BLUE);
-  entry.getRange("B13:C13").setFontColor(GOLD);
+  entry.getRange("A14").setValue(false);
+  entry.getRange("A13:C15").setBackground(DARK_BLUE);
+  entry.getRange("B14:C14").setFontColor(GOLD);
   SpreadsheetApp.flush();
 }
 
