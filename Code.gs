@@ -32,6 +32,8 @@ function onOpen() {
     .createMenu("Expense Tracker")
     .addItem("Add Transaction", "addTransaction")
     .addSeparator()
+    .addItem("★ Full Setup (one click)", "runFullSetup")
+    .addSeparator()
     .addItem("1 — Create Tabs",         "runCreateSheets")
     .addItem("2 — Setup Transactions",  "runSetupTransactions")
     .addItem("3 — Setup Tab",           "runSetupTab")
@@ -49,7 +51,7 @@ function onOpen() {
   checkIRSRate();
 }
 
-function installTriggers() {
+function installTriggers(silent) {
   // Remove any existing handleEdit installable triggers to avoid duplicates
   ScriptApp.getProjectTriggers().forEach(function(t) {
     if (t.getHandlerFunction() === "handleEdit") ScriptApp.deleteTrigger(t);
@@ -61,7 +63,29 @@ function installTriggers() {
     .onEdit()
     .create();
 
-  SpreadsheetApp.getUi().alert("Triggers installed!\n\nCheckboxes on Dashboard and Mobile Entry will now work.");
+  if (!silent) SpreadsheetApp.getUi().alert("Triggers installed!\n\nCheckboxes on Dashboard and Mobile Entry will now work.");
+}
+
+function runFullSetup() {
+  var ui = SpreadsheetApp.getUi();
+  var response = ui.alert(
+    "Full Setup",
+    "This will build all 8 tabs and install triggers.\n\nThis takes about 30–60 seconds. Click OK to start.",
+    ui.ButtonSet.OK_CANCEL
+  );
+  if (response !== ui.Button.OK) return;
+
+  runCreateSheets(true);
+  runSetupTransactions(true);
+  runSetupTab(true);
+  runRebuildDashboard(true);
+  runSetupPrompts(true);
+  runSetupInstructions(true);
+  runSetupReports(true);
+  runSetupMobileEntry(true);
+  installTriggers(true);
+
+  ui.alert("All done!\n\nAll 8 tabs are set up and triggers are installed.\n\nHead to the Setup tab to add your income sources, then start tracking!");
 }
 
 function handleEdit(e) {
@@ -555,7 +579,7 @@ function clearEntryForm_() {
 // START: SETUP STEP 1 — CREATE TABS
 // ============================================================
 
-function runCreateSheets() {
+function runCreateSheets(silent) {
   var ss       = SpreadsheetApp.getActiveSpreadsheet();
   var tabNames = ["Dashboard", "Mobile Entry", "Transactions", "Setup", "AI Prompts", "Instructions", "Reports"];
   var colors   = [GOLD, DARK_BLUE, GOLD, DARK_BLUE, GOLD, DARK_BLUE, GOLD];
@@ -572,7 +596,7 @@ function runCreateSheets() {
     sheet.setTabColor(colors[idx]);
   });
 
-  SpreadsheetApp.getUi().alert("Tabs created! Run Step 2 next.");
+  if (!silent) SpreadsheetApp.getUi().alert("Tabs created! Run Step 2 next.");
 }
 
 // ============================================================
@@ -584,10 +608,10 @@ function runCreateSheets() {
 // START: SETUP STEP 2 — TRANSACTIONS TAB
 // ============================================================
 
-function runSetupTransactions() {
+function runSetupTransactions(silent) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var tx = ss.getSheetByName("Transactions");
-  if (!tx) { SpreadsheetApp.getUi().alert("Run Step 1 first."); return; }
+  if (!tx) { if (!silent) SpreadsheetApp.getUi().alert("Run Step 1 first."); return; }
 
   tx.clearContents();
   tx.clearFormats();
@@ -635,7 +659,7 @@ function runSetupTransactions() {
   if (existingFilter) existingFilter.remove();
   tx.getRange(1, 1, 1, 8).createFilter();
 
-  SpreadsheetApp.getUi().alert("Transactions tab ready! Run Step 3 next.");
+  if (!silent) SpreadsheetApp.getUi().alert("Transactions tab ready! Run Step 3 next.");
 }
 
 // ============================================================
@@ -647,10 +671,10 @@ function runSetupTransactions() {
 // START: SETUP STEP 3 — SETUP TAB
 // ============================================================
 
-function runSetupTab() {
+function runSetupTab(silent) {
   var ss    = SpreadsheetApp.getActiveSpreadsheet();
   var setup = ss.getSheetByName("Setup");
-  if (!setup) { SpreadsheetApp.getUi().alert("Run Step 1 first."); return; }
+  if (!setup) { if (!silent) SpreadsheetApp.getUi().alert("Run Step 1 first."); return; }
 
   setup.clearContents();
   setup.clearFormats();
@@ -845,7 +869,7 @@ function runSetupTab() {
   if (sources.length === 0) sources = ["DoorDash", "Uber", "Freelance", "Notary", "Other"];
   if (cats.length === 0)    cats    = ["Delivery Income", "Fuel", "Other Expense"];
   applyDropdownValidations_(ss, sources, cats);
-  SpreadsheetApp.getUi().alert("Setup tab ready! Run Step 4 next.");
+  if (!silent) SpreadsheetApp.getUi().alert("Setup tab ready! Run Step 4 next.");
 }
 
 // ============================================================
@@ -857,10 +881,10 @@ function runSetupTab() {
 // START: SETUP STEP 4 — DASHBOARD
 // ============================================================
 
-function runRebuildDashboard() {
+function runRebuildDashboard(silent) {
   var ss   = SpreadsheetApp.getActiveSpreadsheet();
   var dash = ss.getSheetByName("Dashboard");
-  if (!dash) { SpreadsheetApp.getUi().alert("Run Step 1 first."); return; }
+  if (!dash) { if (!silent) SpreadsheetApp.getUi().alert("Run Step 1 first."); return; }
 
   dash.clearContents();
   dash.clearFormats();
@@ -1049,7 +1073,7 @@ function runRebuildDashboard() {
   var cats = getCategories(ss);
   if (cats.length === 0) cats = ["Delivery Income", "Fuel", "Other Expense"];
   applyDropdownValidations_(ss, sources, cats);
-  SpreadsheetApp.getUi().alert("Dashboard rebuilt! Run Step 5 next.");
+  if (!silent) SpreadsheetApp.getUi().alert("Dashboard rebuilt! Run Step 5 next.");
 }
 
 // ------------------------------------------------------------
@@ -1070,10 +1094,10 @@ function columnLetter(col, row) {
 // START: SETUP STEP 5 — AI PROMPTS TAB
 // ============================================================
 
-function runSetupPrompts() {
+function runSetupPrompts(silent) {
   var ss      = SpreadsheetApp.getActiveSpreadsheet();
   var prompts = ss.getSheetByName("AI Prompts");
-  if (!prompts) { SpreadsheetApp.getUi().alert("Run Step 1 first."); return; }
+  if (!prompts) { if (!silent) SpreadsheetApp.getUi().alert("Run Step 1 first."); return; }
 
   prompts.clearContents();
   prompts.clearFormats();
@@ -1154,7 +1178,7 @@ function runSetupPrompts() {
   var promptProt = prompts.protect().setDescription("AI Prompts - Read Only");
   promptProt.removeEditors(promptProt.getEditors());
 
-  SpreadsheetApp.getUi().alert("AI Prompts tab ready! Run Step 6 next.");
+  if (!silent) SpreadsheetApp.getUi().alert("AI Prompts tab ready! Run Step 6 next.");
 }
 
 // ============================================================
@@ -1166,10 +1190,10 @@ function runSetupPrompts() {
 // START: SETUP STEP 6 — INSTRUCTIONS TAB
 // ============================================================
 
-function runSetupInstructions() {
+function runSetupInstructions(silent) {
   var ss   = SpreadsheetApp.getActiveSpreadsheet();
   var inst = ss.getSheetByName("Instructions");
-  if (!inst) { SpreadsheetApp.getUi().alert("Run Step 1 first."); return; }
+  if (!inst) { if (!silent) SpreadsheetApp.getUi().alert("Run Step 1 first."); return; }
 
   inst.clearContents();
   inst.clearFormats();
@@ -1329,7 +1353,7 @@ function runSetupInstructions() {
   var instProt = inst.protect().setDescription("Instructions - Read Only");
   instProt.removeEditors(instProt.getEditors());
 
-  SpreadsheetApp.getUi().alert("Instructions tab ready!\n\nTo print: File → Print → Portrait → Fit to page width → Print\n\nRun Step 7 — Setup Reports next.");
+  if (!silent) SpreadsheetApp.getUi().alert("Instructions tab ready!\n\nTo print: File → Print → Portrait → Fit to page width → Print\n\nRun Step 7 — Setup Reports next.");
 }
 
 // ============================================================
@@ -1341,10 +1365,10 @@ function runSetupInstructions() {
 // START: SETUP STEP 7 — REPORTS TAB
 // ============================================================
 
-function runSetupReports() {
+function runSetupReports(silent) {
   var ss      = SpreadsheetApp.getActiveSpreadsheet();
   var reports = ss.getSheetByName("Reports");
-  if (!reports) { SpreadsheetApp.getUi().alert("Run Step 1 first."); return; }
+  if (!reports) { if (!silent) SpreadsheetApp.getUi().alert("Run Step 1 first."); return; }
 
   reports.clearContents();
   reports.clearFormats();
@@ -1603,7 +1627,7 @@ function runSetupReports() {
   prot.setUnprotectedRanges([reports.getRange(filterRow, 1, 1, 3)]);
   prot.removeEditors(prot.getEditors());
 
-  SpreadsheetApp.getUi().alert("Reports tab ready!\n\nUse the date and source filters in row 3 to slice the report.");
+  if (!silent) SpreadsheetApp.getUi().alert("Reports tab ready!\n\nUse the date and source filters in row 3 to slice the report.");
 }
 
 // ============================================================
@@ -1615,10 +1639,10 @@ function runSetupReports() {
 // START: SETUP STEP 8 — MOBILE ENTRY TAB
 // ============================================================
 
-function runSetupMobileEntry() {
+function runSetupMobileEntry(silent) {
   var ss    = SpreadsheetApp.getActiveSpreadsheet();
   var entry = ss.getSheetByName("Mobile Entry");
-  if (!entry) { SpreadsheetApp.getUi().alert("Run Step 1 first."); return; }
+  if (!entry) { if (!silent) SpreadsheetApp.getUi().alert("Run Step 1 first."); return; }
 
   entry.clearContents();
   entry.clearFormats();
@@ -1738,7 +1762,7 @@ function runSetupMobileEntry() {
 
   entry.setFrozenRows(1);
 
-  SpreadsheetApp.getUi().alert("Quick Entry tab ready!\n\nPress Enter after each field to move down. Check the box at the bottom to submit.");
+  if (!silent) SpreadsheetApp.getUi().alert("Quick Entry tab ready!\n\nPress Enter after each field to move down. Check the box at the bottom to submit.");
 }
 
 // ============================================================
