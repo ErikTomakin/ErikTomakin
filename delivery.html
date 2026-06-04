@@ -174,9 +174,19 @@
     }
 
     /* ── Print ── */
+    @page {
+      size: letter portrait;
+      margin: 0.65in 0.75in;
+    }
+
     @media print {
-      body { padding: 24px 32px; }
-      .link-url { color: #ffffff !important; background: #0055A2 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      body { width: 100%; max-width: 100%; padding: 0; font-size: 11px; }
+      .header { padding: 10px 14px; }
+      .header img { width: 100px !important; height: 100px !important; }
+      .product-title { font-size: 20px !important; }
+      .blurb, .step-body, .tips li { font-size: 11px; }
+      .steps-heading { font-size: 13px; }
+      .link-url { font-size: 11px; color: #ffffff !important; background: #0055A2 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       .header, .blurb, .tips, .step-num { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     }
   </style>
@@ -218,18 +228,22 @@
     </div>
     <div class="step">
       <div class="step-num">2</div>
-      <div class="step-body"><strong>Run Full Setup:</strong> Click the <em>Expense Tracker</em> menu → <em>★ Full Setup (one click)</em>. This builds all 7 tabs in about 30–60 seconds.</div>
+      <div class="step-body"><strong>Google will show a security warning</strong> — click <em>Advanced</em>, then <em>Go to Domo Systems Expense Tracker (unsafe)</em>. This is normal for all third-party Google Sheets and is safe to proceed.</div>
     </div>
     <div class="step">
       <div class="step-num">3</div>
-      <div class="step-body"><strong>Add your income sources</strong> on the <em>Setup</em> tab — e.g. DoorDash, Uber, Etsy. Then set your expense categories.</div>
+      <div class="step-body"><strong>Run Full Setup:</strong> Click the <em>Expense Tracker</em> menu → <em>★ Full Setup (one click)</em>. This builds all 8 tabs in about 30–60 seconds.</div>
     </div>
     <div class="step">
       <div class="step-num">4</div>
-      <div class="step-body"><strong>Start tracking!</strong> Use the <em>Dashboard</em> or <em>Mobile Entry</em> tab to log transactions. The <em>Reports</em> tab updates automatically.</div>
+      <div class="step-body"><strong>Add your income sources</strong> on the <em>Setup</em> tab — e.g. DoorDash, Uber, Etsy. Then set your expense categories.</div>
     </div>
     <div class="step">
       <div class="step-num">5</div>
+      <div class="step-body"><strong>Start tracking!</strong> Use the <em>Dashboard</em> or <em>Mobile Entry</em> tab to log transactions. The <em>Reports</em> tab updates automatically.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">6</div>
       <div class="step-body"><strong>Use AI Prompts</strong> on the last tab — copy a prompt, paste it into ChatGPT or Claude with your data for instant tax insights. No API needed.</div>
     </div>
   </div>
