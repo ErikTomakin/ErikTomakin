@@ -1319,6 +1319,12 @@ function runSetupInstructions() {
 
   inst.setFrozenRows(1);
 
+  // Set portrait orientation and fit to page width for printing
+  var ps = inst.getPageSetup();
+  ps.setOrientation(SpreadsheetApp.PageOrientation.PORTRAIT);
+  ps.setFitToWidth(1);
+  inst.setPageSetup(ps);
+
   // Lock the tab — read only
   var instProt = inst.protect().setDescription("Instructions - Read Only");
   instProt.removeEditors(instProt.getEditors());
