@@ -1277,7 +1277,7 @@ function runSetupInstructions() {
   ];
 
   // Print tip row at very top
-  inst.getRange(1, 1).setValue("PRINT TIP: File → Print → Portrait → Fit to page width → Next → Print")
+  inst.getRange(1, 1).setValue("Print tip: fit to page width")
     .setBackground("#F0F0F0").setFontColor("#888888").setFontSize(9).setFontStyle("italic")
     .setHorizontalAlignment("center").setVerticalAlignment("middle").setWrap(true);
   inst.setRowHeight(1, 18);
