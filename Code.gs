@@ -581,8 +581,8 @@ function clearEntryForm_() {
 
 function runCreateSheets(silent) {
   var ss       = SpreadsheetApp.getActiveSpreadsheet();
-  var tabNames = ["Dashboard", "Mobile Entry", "Transactions", "Setup", "AI Prompts", "Instructions", "Reports"];
-  var colors   = [GOLD, DARK_BLUE, GOLD, DARK_BLUE, GOLD, DARK_BLUE, GOLD];
+  var tabNames = ["Instructions", "Dashboard", "Mobile Entry", "Transactions", "Setup", "Reports", "AI Prompts"];
+  var colors   = [DARK_BLUE, GOLD, DARK_BLUE, GOLD, DARK_BLUE, GOLD, GOLD];
 
   // Remove legacy tabs
   ["Sources", "Expenses"].forEach(function(name) {
@@ -590,10 +590,17 @@ function runCreateSheets(silent) {
     if (s) ss.deleteSheet(s);
   });
 
+  // Create any missing tabs
+  tabNames.forEach(function(name) {
+    if (!ss.getSheetByName(name)) ss.insertSheet(name);
+  });
+
+  // Set colors and enforce tab order
   tabNames.forEach(function(name, idx) {
     var sheet = ss.getSheetByName(name);
-    if (!sheet) sheet = ss.insertSheet(name);
     sheet.setTabColor(colors[idx]);
+    ss.setActiveSheet(sheet);
+    ss.moveActiveSheet(idx + 1);
   });
 
   if (!silent) SpreadsheetApp.getUi().alert("Tabs created! Run Step 2 next.");
