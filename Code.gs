@@ -1247,11 +1247,14 @@ function runSetupInstructions() {
     },
     {
       heading: "USING AI (NO API NEEDED)",
-      body: "1. Go to the Transactions tab and copy your data (Ctrl+A, Ctrl+C).\n" +
-            "2. Go to the AI Prompts tab and copy one of the 3 prompts.\n" +
-            "3. Open ChatGPT, Claude, Gemini, or any AI tool.\n" +
-            "4. Paste the prompt first, then paste your data below it.\n" +
-            "5. The AI will analyze your finances — no subscription or API key required."
+      body: "1. Go to the AI Prompts tab and read the 3 prompts — decide which one fits your need.\n" +
+            "2. Open ChatGPT, Claude.ai, Gemini, or any AI tool in a new browser tab.\n" +
+            "3. Go back to the AI Prompts tab and copy your chosen prompt (Ctrl+C).\n" +
+            "4. Switch to your AI tab and paste the prompt (Ctrl+V).\n" +
+            "5. Go back to your spreadsheet and open the Transactions tab.\n" +
+            "6. Copy your transaction data (Ctrl+A then Ctrl+C).\n" +
+            "7. Switch back to your AI tab and paste the data below the prompt (Ctrl+V).\n" +
+            "8. Send it — the AI will summarize your finances. No subscription or API key required."
     },
     {
       heading: "MENU SHORTCUTS",
