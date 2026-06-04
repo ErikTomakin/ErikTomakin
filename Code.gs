@@ -131,6 +131,9 @@ function markSetupComplete() {
   // Re-apply read-only protection
   var prot = inst.protect().setDescription("Instructions - Read Only");
   prot.removeEditors(prot.getEditors());
+
+  // Send the user to the Instructions tab when setup is done
+  ss.setActiveSheet(inst);
 }
 
 function handleEdit(e) {
